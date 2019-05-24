@@ -24,7 +24,7 @@ const io = socketIo(8080, {
   handlePreflightRequest: function(req, res) {
     let headers = {
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
-      "Access-Control-Allow-Origin": "http://10.185.3.9:3000",
+      "Access-Control-Allow-Origin": "http://10.185.7.45:3000",
       "Access-Control-Allow-Credentials": true
     };
     res.writeHead(200, headers);
@@ -143,15 +143,77 @@ io.on("connection", async socket => {
           to: account_language,
           model: "nmt"
         };
-        // let homeTextResults = await translator.translate(
-        //   payload.homeText,
-        //   options
-        // );
-        // const translatedHome = homeTextResults[0];
-
-        socket.emit("homeTranslated", {});
+        const response = {};
+        for (let keyText in payload) {
+          let results = await translator.translate(payload[keyText], options);
+          response[keyText] = results[0];
+        }
+        socket.emit("homeTranslated", response);
       } else {
-        socket.emit("homeTranslated", {});
+        socket.emit("homeTranslated", {
+          a_descriptorText: "Welcome to your advocate dashboard.",
+          a_inviteBodyText:
+            "As an advocate, you can invite someone to create a resume in their own language and then review it for them. You may also use the menu to do this.",
+          a_inviteButtonText: "Invite a user",
+          a_resumeBodyText:
+            "You're able to create your own resumes here.  You may access them later using the menu at the left of the screen.",
+          a_resumeButtonText: "Create a resume",
+          u_descriptorText: "Welcome to your user dashboard.",
+          u_resumeBodyText:
+            "As a user, you can create an English resume by answering questions in your own language.  Click here to create a resume.",
+          u_resumeButtonText: "Create a resume"
+        });
+      }
+    });
+
+    socket.on("translateResumeIntro", async payload => {
+      if (account_language !== "en") {
+        const options = {
+          to: account_language,
+          model: "nmt"
+        };
+        const response = {};
+        for (let keyText in payload) {
+          let results = await translator.translate(payload[keyText], options);
+          response[keyText] = results[0];
+        }
+        socket.emit("resumeIntroTranslated", response);
+      } else {
+        socket.emit("resumeIntroTranslated", payload);
+      }
+    });
+
+    socket.on("translateContactInfo", async payload => {
+      if (account_language !== "en") {
+        const options = {
+          to: account_language,
+          model: "nmt"
+        };
+        const response = {};
+        for (let keyText in payload) {
+          let results = await translator.translate(payload[keyText], options);
+          response[keyText] = results[0];
+        }
+        socket.emit("contactInfoTranslated", response);
+      } else {
+        socket.emit("contactInfoTranslated", payload);
+      }
+    });
+
+    socket.on("translateWorkEntry", async payload => {
+      if (account_language !== "en") {
+        const options = {
+          to: account_language,
+          model: "nmt"
+        };
+        const response = {};
+        for (let keyText in payload) {
+          let results = await translator.translate(payload[keyText], options);
+          response[keyText] = results[0];
+        }
+        socket.emit("workEntryTranslated", response);
+      } else {
+        socket.emit("workEntryTranslated", payload);
       }
     });
   }

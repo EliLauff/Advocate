@@ -104,7 +104,7 @@ class _UserSelect extends React.Component {
   render() {
     return (
       <Fade in={this.state.visible} timeout={500} unmountOnExit>
-        <Grid container spacing={24}>
+        <Grid container spacing={3}>
           <Grid item xs={6}>
             <Button size="small" onClick={this.handleBack}>
               <KeyboardArrowLeftIcon />
@@ -118,9 +118,8 @@ class _UserSelect extends React.Component {
             </Button>
           </Grid>
           <Grid item xs={12} />
-          <Grid item xs={12} />
           <Grid item xs={1} md={2} />
-          <Grid item xs={10} md={8} style={{ minHeight: "100px" }}>
+          <Grid item xs={10} md={8} style={{ minHeight: "75px" }}>
             <div style={{ textAlign: "center" }}>
               <Typography
                 variant="h3"

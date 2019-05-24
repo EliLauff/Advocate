@@ -261,7 +261,7 @@ class _WelcomeBanner extends React.Component {
   render() {
     return (
       <Fade in={this.state.allVisible} timeout={500} unmountOnExit>
-        <Grid container spacing={24}>
+        <Grid container spacing={3}>
           <Grid item xs={6} />
           <Grid item xs={6} style={{ textAlign: "right" }}>
             <Button size="small" onClick={this.requestLogin}>
@@ -277,7 +277,7 @@ class _WelcomeBanner extends React.Component {
           </Hidden>
           <Grid item xs={1} md={2} />
           <Grid item xs={10} md={8} style={{ minHeight: "215px" }}>
-            <Fade in={this.state.visible} timeout={500}>
+            <Fade in={this.state.visible} timeout={500} unmountOnExit>
               <div style={{ textAlign: "center" }}>
                 <Typography
                   variant="h1"

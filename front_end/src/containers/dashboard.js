@@ -23,6 +23,9 @@ import HomeIcon from "@material-ui/icons/Home";
 import AddIcon from "@material-ui/icons/Add";
 import KeyIcon from "@material-ui/icons/VpnKey";
 import Home from "../components/home";
+import ResumeIntro from "../components/resumeIntro";
+import ContactInfo from "../components/contactInfo";
+import WorkEntry from "../components/workEntry";
 
 const drawerWidth = 240;
 
@@ -60,22 +63,21 @@ export class Dashboard extends React.Component {
         }
       )
     );
-    socketIDs.push(
-      await SocketHandler.registerSocketListener(
-        "accountInfoReceived",
-        response => {
-          this.setState({
-            ...this.state,
-            accountInfo: response.accountInfo,
-            accountUsers: response.accountUsers
-          });
-        }
-      )
+    await SocketHandler.registerSocketListener(
+      "accountInfoReceived",
+      response => {
+        console.log("info updated");
+        this.setState({
+          ...this.state,
+          accountInfo: response.accountInfo,
+          accountUsers: response.accountUsers
+        });
+      }
     );
     await SocketHandler.emit("requestAccountInfo");
     await SocketHandler.emit("translateDashboard", {
-      homeText: "Home",
-      logoutText: "Exit",
+      homeText: "Home Page",
+      logoutText: "Leave",
       usersText: "Users",
       inviteUserText: "Invite user",
       resumesText: "Resumes",
@@ -129,7 +131,10 @@ export class Dashboard extends React.Component {
             <Typography
               variant="h4"
               color="inherit"
-              style={{ fontFamily: "comfortaa", fontStyle: "light" }}
+              style={{
+                fontFamily: "comfortaa",
+                fontStyle: "light"
+              }}
               noWrap
             >
               Advocate
@@ -143,7 +148,10 @@ export class Dashboard extends React.Component {
             <Typography
               variant="h4"
               color="inherit"
-              style={{ fontFamily: "comfortaa", fontStyle: "light" }}
+              style={{
+                fontFamily: "comfortaa",
+                fontStyle: "light"
+              }}
               noWrap
             >
               Advocate
@@ -365,10 +373,28 @@ export class Dashboard extends React.Component {
             </AppBar>
             {this.renderMenu()}
           </div>
-          <Grid container spacing={24}>
+          <Grid container spacing={3}>
             <Grid item xs={12} />
             <Router history={history}>
               <Switch>
+                <Route
+                  path="/newResume"
+                  render={() => (
+                    <ResumeIntro accountInfo={this.state.accountInfo} />
+                  )}
+                />
+                <Route
+                  path="/contactInfo"
+                  render={() => (
+                    <ContactInfo accountInfo={this.state.accountInfo} />
+                  )}
+                />
+                <Route
+                  path="/workEntry"
+                  render={() => (
+                    <WorkEntry accountInfo={this.state.accountInfo} />
+                  )}
+                />
                 <Route
                   path=""
                   render={() => <Home accountInfo={this.state.accountInfo} />}
