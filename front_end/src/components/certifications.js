@@ -56,24 +56,33 @@ export default class Certifications extends React.Component {
       })
     );
     await socketIDs.push(
-      await SocketHandler.registerSocketListener("certsAdded", response => {
-        console.log(response);
-        SocketHandler.emit("createEduEntry", {
-          bio_id: parseInt(localStorage.getItem("active_bio"))
-        });
-      })
+      await SocketHandler.registerSocketListener(
+        "certsAdded",
+        async response => {
+          console.log(response);
+          await SocketHandler.emit("createEduEntry", {
+            bio_id: parseInt(localStorage.getItem("active_bio"))
+          });
+        }
+      )
     );
     await socketIDs.push(
       await SocketHandler.registerSocketListener(
         "eduEntryCreated",
-        response => {
-          console.log(response);
-          localStorage.setItem("eduEntry_id", response.id);
-          setTimeout(() => {
-            history.push("/eduEntry");
-          }, 500);
+        async response => {
+          localStorage.setItem("eduEntry_id", response.newEduEntry.id);
+          await SocketHandler.emit("requestBioInfo", {
+            id: parseInt(localStorage.getItem("active_bio"))
+          });
         }
       )
+    );
+    await socketIDs.push(
+      await SocketHandler.registerSocketListener("renderEduPage", () => {
+        setTimeout(() => {
+          history.push("/eduEntry");
+        }, 500);
+      })
     );
     await SocketHandler.emit("requestAccountInfo");
     await SocketHandler.emit("translateText", {

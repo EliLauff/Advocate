@@ -10,6 +10,7 @@ const EducationEntry = require("./models/EducationEntry");
 const WorkEntry = require("./models/WorkEntry");
 const Language = require("./models/Language");
 const Certification = require("./models/Certification");
+const Skill = require("./models/Skill");
 // Imports the Google Cloud client library
 const { Translate } = require("@google-cloud/translate");
 
@@ -26,7 +27,7 @@ const io = socketIo(8080, {
   handlePreflightRequest: function(req, res) {
     let headers = {
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
-      "Access-Control-Allow-Origin": "http://10.185.3.240:3000",
+      "Access-Control-Allow-Origin": "http://10.185.7.87:3000",
       "Access-Control-Allow-Credentials": true
     };
     res.writeHead(200, headers);
@@ -63,6 +64,152 @@ io.on("connection", async socket => {
     }
 
     //socket connections for user model
+    socket.on("requestBioInfo", async payload => {
+      if (payload.id) {
+        let accountBios = await Bio.findAll({
+          where: { account_id: accountID },
+          attributes: { exclude: "account_id", include: "id" }
+        });
+        console.log("HERE:", payload.id, accountBios[0].id);
+        let activeBio = accountBios.find(bio => {
+          return bio.id === payload.id;
+        });
+        console.log(activeBio);
+        let eduEntries = await EducationEntry.findAll({
+          where: { bio_id: activeBio.id }
+        });
+        let workEntries = await WorkEntry.findAll({
+          where: { bio_id: activeBio.id }
+        });
+        await socket.emit("bioInfoRecieved", {
+          bioInfo: {
+            bioStuff: activeBio,
+            workEntries: workEntries,
+            eduEntries: eduEntries
+          }
+        });
+      }
+    });
+
+    socket.on("requestBioInfoEdu", async payload => {
+      if (payload.id) {
+        let accountBios = await Bio.findAll({
+          where: { account_id: accountID },
+          attributes: { exclude: "account_id", include: "id" }
+        });
+        console.log("HERE:", payload.id, accountBios[0].id);
+        let activeBio = accountBios.find(bio => {
+          return bio.id === payload.id;
+        });
+        console.log(activeBio);
+        let eduEntries = await EducationEntry.findAll({
+          where: { bio_id: activeBio.id }
+        });
+        let workEntries = await WorkEntry.findAll({
+          where: { bio_id: activeBio.id }
+        });
+        await socket.emit("bioInfoRecieved", {
+          bioInfo: {
+            bioStuff: activeBio,
+            workEntries: workEntries,
+            eduEntries: eduEntries
+          }
+        });
+        await socket.emit("renderEduPage");
+      } else {
+        console.log("no bio id given...");
+      }
+    });
+
+    socket.on("requestBioInfoWork", async payload => {
+      if (payload.id) {
+        let accountBios = await Bio.findAll({
+          where: { account_id: accountID },
+          attributes: { exclude: "account_id", include: "id" }
+        });
+        console.log("HERE:", payload.id, accountBios[0].id);
+        let activeBio = accountBios.find(bio => {
+          return bio.id === payload.id;
+        });
+        console.log(activeBio);
+        let eduEntries = await EducationEntry.findAll({
+          where: { bio_id: activeBio.id }
+        });
+        let workEntries = await WorkEntry.findAll({
+          where: { bio_id: activeBio.id }
+        });        
+        await socket.emit("bioInfoRecieved", {
+          bioInfo: {
+            bioStuff: activeBio,
+            workEntries: workEntries,
+            eduEntries: eduEntries
+          }
+        });
+        await socket.emit("renderWorkPage");
+      } else {
+        console.log("no bio id given...");
+      }
+    });
+
+    socket.on("requestWorkEntryInfo", async (payload) => {
+      if (payload.bio_id){
+        let accountBios = await Bio.findAll({
+          where: { account_id: accountID },
+          attributes: { exclude: "account_id", include: "id" }
+        });
+        let activeBio = accountBios.find(bio => {
+          return bio.id === payload.bio_id;
+        });
+        let entries = await WorkEntry.findAll({
+          where: { bio_id: activeBio.id }
+        });
+        let activeEntry = entries.find(entry => {
+          return entry.id === payload.entry_id
+        })
+        let skills = await Skill.findAll({
+          where: { work_entry_id: activeEntry.id }
+        });
+        await socket.emit("workEntryInfoReceived", {
+          entryInfo: {
+            entryStuff: activeEntry,
+            skills: skills
+          }
+        });
+      }
+    })
+
+    socket.on("requestSkillInfo", async (payload) => {
+      if (payload.bio_id){
+        let accountBios = await Bio.findAll({
+          where: { account_id: accountID },
+          attributes: { exclude: "account_id", include: "id" }
+        });
+        let activeBio = accountBios.find(bio => {
+          return bio.id === payload.bio_id;
+        });
+        let entries = await WorkEntry.findAll({
+          where: { bio_id: activeBio.id }
+        });
+        console.log(entries)
+        let skills = []
+        entries.forEach(async (entry)=>{
+          console.log(entry)
+            let entrySkills = await Skill.findAll({
+            where: { work_entry_id: entry.id }
+          });
+
+            skills.push(entrySkills.flat())
+            console.log(skills)
+            await socket.emit("skillInfoReceived", {
+          entryInfo: {
+            entries: entries,
+            skills: skills
+          }
+        });
+        })
+      }
+    })
+
     socket.on("requestAccountInfo", async () => {
       if (foundAdvocate !== null) {
         let accountUsers = await User.findAll({
@@ -284,6 +431,7 @@ io.on("connection", async socket => {
     });
 
     socket.on("updateUser", async payload => {
+      console.log(payload);
       if (foundAdvocate !== null) {
         for (let keyText in payload) {
           foundAdvocate[keyText] = await payload[keyText];
@@ -330,14 +478,62 @@ io.on("connection", async socket => {
       socket.emit("certsAdded");
     });
 
+    socket.on("addSkills", async payload => {
+      Skill.destroy({ where: { work_entry_id: payload.entry_id } });
+      for (let skill of payload.skillData) {
+        if (skill !== "") {
+          let newSkill = await Skill.build();
+          newSkill.description = skill;
+          newSkill.work_entry_id = payload.entry_id;
+          await newSkill.save();
+        }
+      }
+      socket.emit("skillsAdded");
+    });
+
     socket.on("createEduEntry", async payload => {
-      console.log(payload.bio_id)
+      console.log(payload.bio_id);
       let newEduEntry = await EducationEntry.build();
       newEduEntry.bio_id = payload.bio_id;
       await newEduEntry.save();
       socket.emit("eduEntryCreated", {
         newEduEntry: newEduEntry
       });
+    });
+
+    socket.on("saveEduEntry", async payload => {
+      let eduEntry = await EducationEntry.findByPk(payload.id);
+      console.log(eduEntry);
+      eduEntry.school_name = payload.schoolName;
+      eduEntry.start_date = payload.startDate;
+      eduEntry.finish_date = payload.finishDate;
+      eduEntry.degree_type = payload.degreeType;
+      eduEntry.degree_major = payload.degreeMajor;
+      await eduEntry.save();
+      socket.emit("eduEntrySaved");
+    });
+
+    socket.on("createWorkEntry", async payload => {
+      console.log(payload.bio_id);
+      let newWorkEntry = await WorkEntry.build();
+      newWorkEntry.bio_id = payload.bio_id;
+      await newWorkEntry.save();
+      socket.emit("workEntryCreated", {
+        newWorkEntry: newWorkEntry
+      });
+    });
+
+     socket.on("saveWorkEntry", async payload => {
+      let workEntry = await WorkEntry.findByPk(payload.id);
+      console.log(workEntry);
+      workEntry.company_name = payload.companyName;
+      workEntry.start_date = payload.startDate;
+      workEntry.finish_date = payload.finishDate;
+      workEntry.position_title = payload.positionTitle;
+      workEntry.work_description = payload.workDescription;
+      workEntry.reference_contact_info = payload.reference;
+      await workEntry.save();
+      socket.emit("workEntrySaved");
     });
   }
 

@@ -25,11 +25,11 @@ WorkEntry.init(
     },
     position_title: {
       type: Sequelize.STRING,
-      allowNull: false
+      allowNull: true
     },
     work_description: {
       type: Sequelize.STRING,
-      allowNull: false
+      allowNull: true
     },
     skills_learned: {
       type: Sequelize.STRING,

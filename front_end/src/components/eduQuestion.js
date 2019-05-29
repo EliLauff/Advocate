@@ -16,6 +16,44 @@ export default class EduQuestion extends React.Component {
   };
 
   async componentDidMount() {
+    await socketIDs.push(
+      await SocketHandler.registerSocketListener(
+        "eduEntryCreated",
+        async response => {
+          localStorage.setItem("eduEntry_id", response.newEduEntry.id);
+          await SocketHandler.emit("requestBioInfoEdu", {
+            id: parseInt(localStorage.getItem("active_bio"))
+          });
+        }
+      )
+    );
+    await socketIDs.push(
+      await SocketHandler.registerSocketListener("renderEduPage", () => {
+        setTimeout(() => {
+          history.push("/eduEntry");
+        }, 500);
+      })
+    );
+
+    await socketIDs.push(
+      await SocketHandler.registerSocketListener(
+        "workEntryCreated",
+        async response => {
+          localStorage.setItem("workEntry_id", response.newWorkEntry.id);
+          await SocketHandler.emit("requestBioInfoWork", {
+            id: parseInt(localStorage.getItem("active_bio"))
+          });
+        }
+      )
+    );
+    await socketIDs.push(
+      await SocketHandler.registerSocketListener("renderWorkPage", () => {
+        setTimeout(() => {
+          history.push("/workEntry");
+        }, 500);
+      })
+    );
+
     socketIDs.push(
       await SocketHandler.registerSocketListener("textTranslated", response => {
         console.log(response);
@@ -32,6 +70,9 @@ export default class EduQuestion extends React.Component {
       })
     );
     await SocketHandler.emit("requestAccountInfo");
+    await SocketHandler.emit("requestBioInfo", {
+      id: parseInt(localStorage.getItem("active_bio"))
+    });
     await SocketHandler.emit("translateText", {
       descriptorText:
         "Is there additional educational experience that you would like to record on your resume?",
@@ -52,16 +93,16 @@ export default class EduQuestion extends React.Component {
 
   handleYes = () => {
     this.setState({ visible: false });
-    setTimeout(() => {
-      history.push("/eduEntry");
-    }, 500);
+    SocketHandler.emit("createEduEntry", {
+      bio_id: parseInt(localStorage.getItem("active_bio"))
+    });
   };
 
   handleNo = () => {
     this.setState({ visible: false });
-    setTimeout(() => {
-      history.push("/workEntry");
-    }, 500);
+    SocketHandler.emit("createWorkEntry", {
+      bio_id: parseInt(localStorage.getItem("active_bio"))
+    });
   };
 
   render() {

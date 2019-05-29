@@ -31,6 +31,7 @@ import EduEntry from "../components/eduEntry";
 import EduQuestion from "../components/eduQuestion";
 import Certifications from "../components/certifications";
 import Languages from "../components/languages";
+import ShowResume from "../components/showResume";
 import { MuiPickersUtilsProvider } from "@material-ui/pickers";
 import DateFnsUtils from "@date-io/date-fns";
 
@@ -70,18 +71,37 @@ export class Dashboard extends React.Component {
         }
       )
     );
-    await SocketHandler.registerSocketListener(
-      "accountInfoReceived",
-      response => {
-        console.log("info updated");
-        console.log(response);
-        this.setState({
-          ...this.state,
-          accountInfo: response.accountInfo
-        });
-      }
+    socketIDs.push(
+      await SocketHandler.registerSocketListener(
+        "bioInfoRecieved",
+        response => {
+          console.log("bio info updated");
+          console.log(response);
+          this.setState({
+            ...this.state,
+            bioInfo: response.bioInfo
+          });
+        }
+      )
     );
+    socketIDs.push(
+      await SocketHandler.registerSocketListener(
+        "accountInfoReceived",
+        response => {
+          console.log("info updated");
+          console.log(response);
+          this.setState({
+            ...this.state,
+            accountInfo: response.accountInfo
+          });
+        }
+      )
+    );
+
     await SocketHandler.emit("requestAccountInfo");
+    await SocketHandler.emit("requestBioInfo", {
+      id: parseInt(localStorage.getItem("active_bio"))
+    });
     await SocketHandler.emit("translateDashboard", {
       homeText: "Home Page",
       logoutText: "Leave",
@@ -123,8 +143,8 @@ export class Dashboard extends React.Component {
   renderToolbar() {
     if (this.state.accountInfo) {
       if (
-        this.state.accountInfo.account_type === "advocate" ||
-        this.state.accountInfo.has_account === true
+        this.state.accountInfo.accountStuff.account_type === "advocate" ||
+        this.state.accountInfo.accountStuff.has_account === true
       ) {
         return (
           <Toolbar disableGutters={!this.state.open} color={"white"}>
@@ -171,7 +191,7 @@ export class Dashboard extends React.Component {
 
   renderMenu() {
     if (this.state.accountInfo) {
-      if (this.state.accountInfo.account_type === "advocate") {
+      if (this.state.accountInfo.accountStuff.account_type === "advocate") {
         return (
           <Drawer variant="persistent" anchor="left" open={this.state.open}>
             <div
@@ -284,8 +304,8 @@ export class Dashboard extends React.Component {
           </Drawer>
         );
       } else if (
-        this.state.accountInfo.account_type === "user" &&
-        this.state.accountInfo.has_account === true
+        this.state.accountInfo.accountStuff.account_type === "user" &&
+        this.state.accountInfo.accountStuff.has_account === true
       ) {
         return (
           <Drawer variant="persistent" anchor="left" open={this.state.open}>
@@ -400,25 +420,37 @@ export class Dashboard extends React.Component {
                   <Route
                     path="/workEntry"
                     render={() => (
-                      <WorkEntry accountInfo={this.state.accountInfo} />
+                      <WorkEntry
+                        accountInfo={this.state.accountInfo}
+                        bioInfo={this.state.bioInfo}
+                      />
                     )}
                   />
                   <Route
                     path="/workQuestion"
                     render={() => (
-                      <WorkQuestion accountInfo={this.state.accountInfo} />
+                      <WorkQuestion
+                        accountInfo={this.state.accountInfo}
+                        bioInfo={this.state.bioInfo}
+                      />
                     )}
                   />
                   <Route
                     path="/eduEntry"
                     render={() => (
-                      <EduEntry accountInfo={this.state.accountInfo} />
+                      <EduEntry
+                        accountInfo={this.state.accountInfo}
+                        bioInfo={this.state.bioInfo}
+                      />
                     )}
                   />
                   <Route
                     path="/eduQuestion"
                     render={() => (
-                      <EduQuestion accountInfo={this.state.accountInfo} />
+                      <EduQuestion
+                        accountInfo={this.state.accountInfo}
+                        bioInfo={this.state.bioInfo}
+                      />
                     )}
                   />
                   <Route
@@ -431,6 +463,13 @@ export class Dashboard extends React.Component {
                     path="/languages"
                     render={() => (
                       <Languages accountInfo={this.state.accountInfo} />
+                    )}
+                  />                  
+                  <Route
+                    path="/showResume"
+                    render={() => (
+                      <ShowResume accountInfo={this.state.accountInfo} 
+                      bioInfo={this.state.bioInfo}/>
                     )}
                   />
                   <Route

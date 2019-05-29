@@ -28,20 +28,22 @@ import {
 const socketIDs = [];
 
 export default class EduEntry extends React.Component {
-  state = {
-    visible: false,
-    schoolName: "",
-    startDate: new Date(),
-    finishDate: new Date(),
-    degreeType: "",
-    degreeMajor: "",
-    eduDescription: ""
-  };
+  constructor(props) {
+    super(props);
+    console.log(this.props);
+    this.state = {
+      visible: false,
+      schoolName: "",
+      startDate: new Date(),
+      finishDate: new Date(),
+      degreeType: "",
+      degreeMajor: ""
+    };
+  }
 
   async componentDidMount() {
     socketIDs.push(
-      await SocketHandler.registerSocketListener("eduEntrySaved", response => {
-        console.log(response);
+      await SocketHandler.registerSocketListener("eduEntrySaved", () => {
         setTimeout(() => {
           history.push("/eduQuestion");
         }, 500);
@@ -73,11 +75,34 @@ export default class EduEntry extends React.Component {
           otherDegreeText_t: response.otherDegreeText,
           noneText_t: response.noneText,
           selectText_t: response.selectText,
-          visible: true
+          schoolName: this.props.bioInfo.eduEntries.find(
+            entry => entry.id === parseInt(localStorage.getItem("eduEntry_id"))
+          ).school_name,
+          startDate:
+            this.props.bioInfo.eduEntries.find(
+              entry =>
+                entry.id === parseInt(localStorage.getItem("eduEntry_id"))
+            ).start_date || new Date(),
+          finishDate:
+            this.props.bioInfo.eduEntries.find(
+              entry =>
+                entry.id === parseInt(localStorage.getItem("eduEntry_id"))
+            ).finish_date || new Date(),
+          degreeType: this.props.bioInfo.eduEntries.find(
+            entry => entry.id === parseInt(localStorage.getItem("eduEntry_id"))
+          ).degree_type,
+          degreeMajor: this.props.bioInfo.eduEntries.find(
+            entry => entry.id === parseInt(localStorage.getItem("eduEntry_id"))
+          ).degree_major,
+          visible: true,
+          id: parseInt(localStorage.getItem("eduEntry_id"))
         });
       })
     );
     await SocketHandler.emit("requestAccountInfo");
+    await SocketHandler.emit("requestBioInfo", {
+      id: parseInt(localStorage.getItem("active_bio"))
+    });
     await SocketHandler.emit("translateText", {
       headerText:
         "Please use the form below to describe your educational background.",
@@ -128,6 +153,14 @@ export default class EduEntry extends React.Component {
 
   handleSubmit = e => {
     this.setState({ visible: false });
+    SocketHandler.emit("saveEduEntry", {
+      id: this.state.id,
+      schoolName: this.state.schoolName,
+      startDate: this.state.startDate,
+      finishDate: this.state.finishDate,
+      degreeType: this.state.degreeType,
+      degreeMajor: this.state.degreeMajor
+    });
   };
 
   degreeOptions = () => {

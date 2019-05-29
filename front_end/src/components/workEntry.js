@@ -24,21 +24,25 @@ import {
 const socketIDs = [];
 
 export default class WorkEntry extends React.Component {
-  state = {
-    visible: false,
-    companyName: "",
-    startDate: new Date(),
-    finishDate: new Date(),
-    positionTitle: "",
-    workDescription: "",
-    reference: "",
-    numSkills: 1,
-    skillsLearned: []
-  };
+  constructor(props) {
+    super(props);
+    this.state = {
+      visible: false,
+      companyName: "",
+      startDate: new Date(),
+      finishDate: new Date(),
+      positionTitle: "",
+      workDescription: "",
+      reference: "",
+      numSkills: 1,
+      skillsLearned: [""]
+    };
+  }
 
   async componentDidMount() {
     socketIDs.push(
       await SocketHandler.registerSocketListener("textTranslated", response => {
+        console.log(this.props)
         console.log(response);
         this.setState({
           ...this.state,
@@ -64,7 +68,68 @@ export default class WorkEntry extends React.Component {
         });
       })
     );
+    socketIDs.push(
+      await SocketHandler.registerSocketListener("workEntryInfoReceived", response => {
+        console.log(response);
+        let skillCap = 0
+        if (response.entryInfo.skills.length > 0){
+          skillCap = response.entryInfo.skills.length
+        } else {
+          skillCap = 1
+        }
+        this.setState({
+          ...this.state,
+          companyName: response.entryInfo.entryStuff.company_name || "",
+          startDate: response.entryInfo.entryStuff.start_date || new Date(),
+          finishDate:
+            response.entryInfo.entryStuff.finish_date || new Date(),
+          positionTitle: response.entryInfo.entryStuff.position_title || "",
+          workDescription: response.entryInfo.entryStuff.work_description || "",
+          reference: response.entryInfo.entryStuff.reference_contact_info || "",
+          skillsLearned: response.entryInfo.skills || [""],
+          numSkills: skillCap,
+          id: response.entryInfo.entryStuff.id 
+        });
+        if (response.entryInfo.skills.length > 0) {
+          let n = 0;
+          while (n < skillCap) {
+            this.setState({
+              ...this.state,
+              [`skill_${n}`]: response.entryInfo.skills[n].description
+            });
+            n++;
+          }
+        }
+      })
+    );
+     socketIDs.push(
+      await SocketHandler.registerSocketListener("skillsAdded", () => {
+        SocketHandler.emit("saveWorkEntry", {
+            id: this.state.id,
+            companyName: this.state.companyName,
+            startDate: this.state.startDate,
+            finishDate: this.state.finishDate,
+            positionTitle: this.state.positionTitle,
+            workDescription: this.state.workDescription,
+            reference: this.state.reference
+        })
+      })
+    );
+    socketIDs.push(
+      await SocketHandler.registerSocketListener("workEntrySaved", () => {
+        setTimeout(()=>{
+          history.push('/workQuestion')
+        },500)
+      })
+    );
     await SocketHandler.emit("requestAccountInfo");
+    await SocketHandler.emit("requestBioInfo", {
+      id: parseInt(localStorage.getItem("active_bio"))
+    });
+    await SocketHandler.emit("requestWorkEntryInfo", {
+      bio_id: parseInt(localStorage.getItem("active_bio")),
+      entry_id: parseInt(localStorage.getItem("workEntry_id"))
+    });
     await SocketHandler.emit("translateText", {
       headerText: "Please use the form below to describe your most recent job.",
       companyNameDescriptorText:
@@ -124,11 +189,11 @@ export default class WorkEntry extends React.Component {
       console.log("rendering box");
       boxes.push(
         <TextField
-          id={`skill-${i}`}
-          name={`skill-${i}`}
+          id={`skill_${i}`}
+          name={`skill_${i}`}
           label={this.state.skillsLearnedLabelText_t}
-          value={this.state[`skill-${i}`]}
-          onChange={this.handleChange(`skill-${i}`)}
+          value={this.state[`skill_${i}`]}
+          onChange={this.handleChange(`skill_${i}`)}
           margin="normal"
           fullWidth
         />
@@ -139,9 +204,17 @@ export default class WorkEntry extends React.Component {
 
   handleSubmit = e => {
     this.setState({ visible: false });
-    setTimeout(() => {
-      history.push("/workQuestion");
-    }, 500);
+    let skillData = [];
+    for (let keyText in this.state) {
+      if (keyText.includes("skill_")) {
+        skillData.push(this.state[keyText]);
+      }
+    }
+    console.log(skillData);
+    SocketHandler.emit("addSkills", {
+      skillData: skillData,
+      entry_id: this.state.id
+    });
   };
 
   render() {
@@ -308,7 +381,7 @@ export default class WorkEntry extends React.Component {
                         <Grid item xs={10}>
                           <Typography
                             variant={"body1"}
-                            style={{ marginTop: "60px", marginBottom: "25px" }}
+                            style={{ marginTop: "60px", marginBottom: "70px" }}
                           >
                             {this.state.skillsLearnedDescriptorText_t}
                           </Typography>

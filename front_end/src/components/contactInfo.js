@@ -26,7 +26,7 @@ export default class ContactInfo extends React.Component {
     visible: false,
     firstName: this.props.accountInfo.accountStuff.first_name,
     lastName: this.props.accountInfo.accountStuff.last_name,
-    phone: "",
+    phone: this.props.accountInfo.accountStuff.phone_number,
     email: this.props.accountInfo.accountStuff.email,
     headerText_t: "",
     firstNameLabelText_t: "",
@@ -64,6 +64,9 @@ export default class ContactInfo extends React.Component {
       })
     );
     await SocketHandler.emit("requestAccountInfo");
+    await SocketHandler.emit("requestBioInfo", {
+      id: parseInt(localStorage.getItem("active_bio"))
+    });
     await SocketHandler.emit("translateText", {
       headerText: "Please use the form below to provide your contact info.",
       firstNameLabelText: "First name: ",

@@ -31,7 +31,30 @@ export default class WorkQuestion extends React.Component {
         });
       })
     );
+
+    await socketIDs.push(
+      await SocketHandler.registerSocketListener(
+        "workEntryCreated",
+        async response => {
+          localStorage.setItem("workEntry_id", response.newWorkEntry.id);
+          await SocketHandler.emit("requestBioInfoWork", {
+            id: parseInt(localStorage.getItem("active_bio"))
+          });
+        }
+      )
+    );
+    await socketIDs.push(
+      await SocketHandler.registerSocketListener("renderWorkPage", () => {
+        setTimeout(() => {
+          history.push("/workEntry");
+        }, 500);
+      })
+    );
+
     await SocketHandler.emit("requestAccountInfo");
+    await SocketHandler.emit("requestBioInfo", {
+      id: parseInt(localStorage.getItem("active_bio"))
+    });
     await SocketHandler.emit("translateText", {
       descriptorText:
         "Do you want to place more work experience on your resume?",
@@ -55,16 +78,16 @@ export default class WorkQuestion extends React.Component {
 
   handleYes = () => {
     this.setState({ visible: false });
-    setTimeout(() => {
-      history.push("/workEntry");
-    }, 500);
+    SocketHandler.emit("createWorkEntry", {
+      bio_id: parseInt(localStorage.getItem("active_bio"))
+    });
   };
 
   handleNo = () => {
     this.setState({ visible: false });
-    setTimeout(() => {
-      history.push("/finish");
-    }, 500);
+    setTimeout(()=>{
+      history.push('/showResume')
+    },500)
   };
 
   render() {

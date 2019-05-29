@@ -10,7 +10,7 @@ import history from "../history";
 
 const socketIDs = [];
 
-export default class ResumeIntro extends React.Component {
+export default class ShowResume extends React.Component {
   state = {
     visible: false,
     headerText_t: "",
@@ -31,14 +31,29 @@ export default class ResumeIntro extends React.Component {
         });
       })
     );
+
     socketIDs.push(
-      await SocketHandler.registerSocketListener("bioCreated", response => {
-        localStorage.setItem("active_bio", response.createdBio.id);
-        setTimeout(() => {
-          history.push("/contactInfo");
-        }, 500);
+      await SocketHandler.registerSocketListener("bioInfoReceived", response => {
+        console.log(response);
       })
     );
+
+    socketIDs.push(
+      await SocketHandler.registerSocketListener("skillInfoReceived", response => {
+        console.log(response);
+      })
+    );
+    
+    
+
+    await SocketHandler.emit("requestAccountInfo");
+    await SocketHandler.emit("requestBioInfo", {
+      id: parseInt(localStorage.getItem("active_bio"))
+    });
+    await SocketHandler.emit('requestSkillInfo', {
+      bio_id: parseInt(localStorage.getItem("active_bio"))
+    });
+
     await SocketHandler.emit("translateText", {
       headerText:
         "Welcome to Advocate.  This is a resume builder designed for non-native english speakers.",
@@ -46,8 +61,6 @@ export default class ResumeIntro extends React.Component {
         "The resume builder will ask you a series of questions.  Answer them as clearly and as simply as possible.",
       buttonText: "Continue"
     });
-
-    await SocketHandler.emit("requestAccountInfo");
   }
 
   componentWillUnmount() {
