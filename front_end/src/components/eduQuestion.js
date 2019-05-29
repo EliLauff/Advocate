@@ -1,103 +1,66 @@
 import React from "react";
 import SocketHandler from "../SocketHandler";
-import { connect } from "react-redux";
 import Fade from "@material-ui/core/Fade";
 import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import Hidden from "@material-ui/core/Hidden";
 import Button from "@material-ui/core/Button";
 import KeyboardArrowLeftIcon from "@material-ui/icons/KeyboardArrowLeft";
-import KeyIcon from "@material-ui/icons/VpnKey";
 import history from "../history";
 
-const mapStateToProps = state => {
-  return {
-    language: localStorage.getItem("language") || state.language
-  };
-};
+const socketIDs = [];
 
-const mapDispatchToProps = dispatch => {
-  return {
-    selectUserType: userType =>
-      dispatch({ type: "SELECT_USER_TYPE", payload: { userType: userType } }),
-    setLanguage: language =>
-      dispatch({ type: "SET_LANGUAGE", payload: { language: language } })
-  };
-};
-
-const myConnector = connect(
-  mapStateToProps,
-  mapDispatchToProps
-);
-
-let socketID = null;
-
-class _UserSelect extends React.Component {
+export default class EduQuestion extends React.Component {
   state = {
-    visible: false,
-    language: "",
-    descriptorText_t: "",
-    advocateHeaderText_t: "",
-    advocateDescriptorText_t: "",
-    userHeaderText_t: "",
-    userDescriptorText_t: "",
-    loginText_t: "",
-    goBackText_t: ""
+    visible: false
   };
 
   async componentDidMount() {
-    socketID = await SocketHandler.registerSocketListener(
-      "userSelectTranslated",
-      response => {
+    socketIDs.push(
+      await SocketHandler.registerSocketListener("textTranslated", response => {
+        console.log(response);
         this.setState({
           ...this.state,
-          descriptorText_t: response.returnedDescriptor,
-          advocateHeaderText_t: response.returnedAdvocateHeader,
-          advocateDescriptorText_t: response.returnedAdvocateDescriptor,
-          userHeaderText_t: response.returnedUserHeader,
-          userDescriptorText_t: response.returnedUserDescriptor,
-          loginText_t: response.returnedLoginText,
-          goBackText_t: response.returnedGoBackText,
+          descriptorText_t: response.descriptorText,
+          yesHeaderText_t: response.yesHeaderText,
+          yesDescriptorText_t: response.yesDescriptorText,
+          noHeaderText_t: response.noHeaderText,
+          noDescriptorText_t: response.noDescriptorText,
+          goBackText_t: response.goBackText,
           visible: true
         });
-      }
+      })
     );
-    await SocketHandler.emit("translateUserSelect", {
-      language: this.props.language,
-      descriptorText: "What type of user are you?",
-      advocateHeaderText: "Helper",
-      advocateDescriptorText: "I want to help someone else create a resume.",
-      userHeaderText: "User",
-      userDescriptorText: "I want to build a professional resume for myself.",
-      loginText: "Log in",
+    await SocketHandler.emit("requestAccountInfo");
+    await SocketHandler.emit("translateText", {
+      descriptorText:
+        "Is there additional educational experience that you would like to record on your resume?",
+      yesHeaderText: "Yes",
+      yesDescriptorText: "I want to record more of my educational background.",
+      noHeaderText: "No",
+      noDescriptorText:
+        "I have already provided all relevant educational experience.",
       goBackText: "Go back"
     });
   }
 
   componentWillUnmount() {
-    SocketHandler.unregisterSocketListener(socketID);
+    for (let i = 0; i < socketIDs.length; i++) {
+      SocketHandler.unregisterSocketListener(socketIDs[i]);
+    }
   }
 
-  handleClick = userType => {
+  handleYes = () => {
     this.setState({ visible: false });
     setTimeout(() => {
-      history.push(`/${userType}Signup`);
+      history.push("/eduEntry");
     }, 500);
   };
 
-  handleBack = () => {
+  handleNo = () => {
     this.setState({ visible: false });
-    localStorage.setItem("language", "en");
-    this.props.setLanguage("en");
     setTimeout(() => {
-      history.goBack();
-    }, 500);
-  };
-
-  requestLogin = () => {
-    this.setState({ ...this.state, visible: false });
-    setTimeout(() => {
-      history.push("/loginForm");
+      history.push("/workEntry");
     }, 500);
   };
 
@@ -111,12 +74,7 @@ class _UserSelect extends React.Component {
               {this.state.goBackText_t}
             </Button>
           </Grid>
-          <Grid item xs={6} style={{ textAlign: "right" }}>
-            <Button size="small" onClick={this.requestLogin}>
-              {this.state.loginText_t}
-              <KeyIcon style={{ marginLeft: "5px" }} />
-            </Button>
-          </Grid>
+          <Grid item xs={6} style={{ textAlign: "right" }} />
           <Grid item xs={12} />
           <Grid item xs={1} md={2} />
           <Grid item xs={10} md={8} style={{ minHeight: "75px" }}>
@@ -134,7 +92,7 @@ class _UserSelect extends React.Component {
           <Grid item xs={false} md={3} />
           <Grid item xs={12} md={3} style={{ textAlign: "center" }}>
             <Button
-              onClick={() => this.handleClick("user")}
+              onClick={this.handleYes}
               variant="contained"
               fullWidth
               style={{
@@ -148,14 +106,14 @@ class _UserSelect extends React.Component {
                 <Grid item xs={1} />
                 <Grid item xs={10}>
                   <Typography variant="h4">
-                    {this.state.userHeaderText_t}
+                    {this.state.yesHeaderText_t}
                   </Typography>
                 </Grid>
                 <Grid item xs={1} />
                 <Grid item xs={1} />
                 <Grid item xs={10}>
                   <Typography variant="body1">
-                    {this.state.userDescriptorText_t}
+                    {this.state.yesDescriptorText_t}
                   </Typography>
                 </Grid>
                 <Grid item xs={1} />
@@ -164,7 +122,7 @@ class _UserSelect extends React.Component {
           </Grid>
           <Grid item xs={12} md={3} style={{ textAlign: "center" }}>
             <Button
-              onClick={() => this.handleClick("advocate")}
+              onClick={this.handleNo}
               variant="contained"
               fullWidth
               style={{
@@ -178,14 +136,14 @@ class _UserSelect extends React.Component {
                 <Grid item xs={1} />
                 <Grid item xs={10}>
                   <Typography variant="h4">
-                    {this.state.advocateHeaderText_t}
+                    {this.state.noHeaderText_t}
                   </Typography>
                 </Grid>
                 <Grid item xs={1} />
                 <Grid item xs={1} />
                 <Grid item xs={10}>
                   <Typography variant="body1">
-                    {this.state.advocateDescriptorText_t}
+                    {this.state.noDescriptorText_t}
                   </Typography>
                 </Grid>
                 <Grid item xs={1} />
@@ -198,5 +156,3 @@ class _UserSelect extends React.Component {
     );
   }
 }
-
-export const UserSelect = myConnector(_UserSelect);

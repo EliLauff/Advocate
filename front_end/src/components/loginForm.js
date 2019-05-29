@@ -12,6 +12,7 @@ import Paper from "@material-ui/core/Paper";
 import TextField from "@material-ui/core/TextField";
 import KeyboardArrowRightIcon from "@material-ui/icons/KeyboardArrowRight";
 import history from "../history";
+import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
 
 const mapStateToProps = state => {
   return {
@@ -37,10 +38,20 @@ class _LoginForm extends React.Component {
   state = {
     visible: false,
     password: "",
-    email: ""
+    email: "",
+    invalidLogin: false
   };
 
   async componentDidMount() {
+    socketIDs.push(
+      await SocketHandler.registerSocketListener("invalidLogin", response => {
+        this.setState({
+          ...this.state,
+          invalidLogin: true
+        });
+      })
+    );
+
     socketIDs.push(
       await SocketHandler.registerSocketListener(
         "loginTranslated",
@@ -52,6 +63,11 @@ class _LoginForm extends React.Component {
             loginText_t: response.returnedLoginText,
             goBackText_t: response.returnedGoBackText,
             emailLabelText_t: response.returnedEmailLabelText,
+            requiredFieldText_t: response.requiredFieldText,
+            validEmailText_t: response.validEmailText,
+            passwordLengthText_t: response.passwordLengthText,
+            passwordMatchText_t: response.passwordMatchText,
+            authenticateText_t: response.authenticateText,
             visible: true
           });
         }
@@ -100,7 +116,12 @@ class _LoginForm extends React.Component {
       passwordLabelText: "Password: ",
       loginText: "Log in",
       goBackText: "Go back",
-      emailLabelText: "E-mail Address: "
+      emailLabelText: "E-mail Address: ",
+      requiredFieldText: "this field is required",
+      validEmailText: "this email is not valid",
+      passwordLengthText: "password must be at least 6 characters long",
+      passwordMatchText: "password mismatch",
+      authenticateText: "Invalid email or password"
     });
   }
 
@@ -111,15 +132,12 @@ class _LoginForm extends React.Component {
   }
 
   handleLogin = e => {
+    this.setState({ authenticate: false });
     e.preventDefault();
-    console.log("clicked");
-    if (this.state.email && this.state.password) {
-      console.log("passed first check");
-      SocketHandler.emit("login", {
-        email: this.state.email,
-        password: this.state.password
-      });
-    }
+    SocketHandler.emit("login", {
+      email: this.state.email,
+      password: this.state.password
+    });
   };
 
   handleChange = name => event => {
@@ -135,7 +153,7 @@ class _LoginForm extends React.Component {
 
   render() {
     return (
-      <Fade in={this.state.visible} timeout={500} unmountOnExit>
+      <Fade in={this.state.visible} timeout={500} unmountOnExit={true}>
         <Grid container spacing={3}>
           <Grid item xs={6}>
             <Button size="small" onClick={this.handleBack}>
@@ -161,24 +179,33 @@ class _LoginForm extends React.Component {
           <Grid item xs={false} md={4} />
           <Grid item xs={12} md={4} style={{ textAlign: "center" }}>
             <Paper>
-              <form>
+              <ValidatorForm
+                ref="form"
+                onSubmit={this.handleLogin}
+                onError={errors => console.log(errors)}
+              >
                 <Grid container>
                   <Grid item xs={1} />
                   <Grid item xs={10}>
-                    <TextField
+                    <TextValidator
                       id="email"
                       name="email"
                       label={this.state.emailLabelText_t}
                       value={this.state.email}
                       onChange={this.handleChange("email")}
                       margin="normal"
+                      validators={["required", "isEmail"]}
+                      errorMessages={[
+                        this.state.requiredFieldText_t,
+                        this.state.validEmailText_t
+                      ]}
                       fullWidth
                     />
                   </Grid>
                   <Grid item xs={1} />
                   <Grid item xs={1} />
                   <Grid item xs={10} style={{ marginBottom: "30px" }}>
-                    <TextField
+                    <TextValidator
                       id="password"
                       name="password"
                       type="password"
@@ -186,11 +213,27 @@ class _LoginForm extends React.Component {
                       value={this.state.password}
                       onChange={this.handleChange("password")}
                       margin="normal"
+                      validators={["required"]}
+                      errorMessages={[this.state.requiredFieldText_t]}
                       fullWidth
                     />
                   </Grid>
                   <Grid item xs={1} />
-
+                  <Fade
+                    in={this.state.invalidLogin}
+                    mountOnEnter={true}
+                    unmountOnExit={true}
+                  >
+                    <Grid container>
+                      <Grid item xs={1} />
+                      <Grid item xs={10} style={{ marginBottom: "30px" }}>
+                        <Typography variant="body2" color="error" align="left">
+                          {this.state.authenticateText_t}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={1} />
+                    </Grid>
+                  </Fade>
                   <Grid item xs={12}>
                     <Button
                       type="submit"
@@ -200,14 +243,13 @@ class _LoginForm extends React.Component {
                         fontStyle: "light",
                         height: "100%"
                       }}
-                      onClick={this.handleLogin}
                     >
                       {this.state.loginText_t}
                       <KeyIcon style={{ marginLeft: "5px" }} />
                     </Button>
                   </Grid>
                 </Grid>
-              </form>
+              </ValidatorForm>
             </Paper>
           </Grid>
 

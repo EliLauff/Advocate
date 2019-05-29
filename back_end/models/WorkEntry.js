@@ -13,7 +13,7 @@ WorkEntry.init(
     },
     company_name: {
       type: Sequelize.STRING,
-      allowNull: false
+      allowNull: true
     },
     start_date: {
       type: Sequelize.DATE,
@@ -32,6 +32,10 @@ WorkEntry.init(
       allowNull: false
     },
     skills_learned: {
+      type: Sequelize.STRING,
+      allowNull: true
+    },
+    reference_contact_info: {
       type: Sequelize.STRING,
       allowNull: true
     }

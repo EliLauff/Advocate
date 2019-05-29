@@ -10,8 +10,10 @@ import KeyboardArrowLeftIcon from "@material-ui/icons/KeyboardArrowLeft";
 import KeyIcon from "@material-ui/icons/VpnKey";
 import Paper from "@material-ui/core/Paper";
 import TextField from "@material-ui/core/TextField";
+import Divider from "@material-ui/core/Divider";
 import KeyboardArrowRightIcon from "@material-ui/icons/KeyboardArrowRight";
 import history from "../history";
+import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
 
 const mapStateToProps = state => {
   return {
@@ -45,6 +47,20 @@ class _UserSignup extends React.Component {
   };
 
   async componentDidMount() {
+    ValidatorForm.addValidationRule("isPasswordMatch", value => {
+      if (value !== this.state.password) {
+        return false;
+      }
+      return true;
+    });
+
+    ValidatorForm.addValidationRule("isPasswordLong", value => {
+      if (value.length < 6) {
+        return false;
+      }
+      return true;
+    });
+
     socketIDs.push(
       await SocketHandler.registerSocketListener(
         "userAccountCreated",
@@ -70,14 +86,16 @@ class _UserSignup extends React.Component {
             descriptorText_t: response.returnedDescriptor,
             signupHeaderText_t: response.returnedSignupHeader,
             loginHeaderText_t: response.returnedLoginHeader,
-            // firstNameLabelText_t: response.returnedFirstNameLabel,
-            // lastNameLabelText_t: response.returnedLastNameLabel,
             passwordLabelText_t: response.returnedPasswordLabel,
             confirmPasswordLabelText_t: response.returnedConfirmPasswordLabel,
             loginText_t: response.returnedLoginText,
             goBackText_t: response.returnedGoBackText,
             createAccountText_t: response.returnedCreateAccountText,
             emailLabelText_t: response.returnedEmailLabelText,
+            requiredFieldText_t: response.requiredFieldText,
+            validEmailText_t: response.validEmailText,
+            passwordLengthText_t: response.passwordLengthText,
+            passwordMatchText_t: response.passwordMatchText,
             visible: true
           });
         }
@@ -89,14 +107,16 @@ class _UserSignup extends React.Component {
         "Please use the form below to create an account or log in.",
       signupHeaderText: "Create User Account",
       loginHeaderText: "Already have an account?",
-      // firstNameLabelText: "First Name: ",
-      // lastNameLabelText: "Last Name: ",
       passwordLabelText: "Password: ",
       confirmPasswordLabelText: "Confirm Password: ",
       loginText: "Log in here",
       goBackText: "Go back",
       createAccountText: "Create Account",
-      emailLabelText: "E-mail Address: "
+      emailLabelText: "E-mail Address: ",
+      requiredFieldText: "this field is required",
+      validEmailText: "this email is not valid",
+      passwordLengthText: "password must be at least 6 characters long",
+      passwordMatchText: "password mismatch"
     });
   }
 
@@ -110,8 +130,6 @@ class _UserSignup extends React.Component {
     e.preventDefault();
     console.log("clicked");
     if (
-      // this.state.firstName &&
-      // this.state.lastName &&
       this.state.email &&
       this.state.password.length > 5 &&
       this.state.password === this.state.confirmPassword
@@ -119,8 +137,6 @@ class _UserSignup extends React.Component {
       console.log("passed first check");
       SocketHandler.emit("createUserAccount", {
         email: this.state.email,
-        // firstName: this.state.firstName,
-        // lastName: this.state.lastName,
         password: this.state.password,
         language: this.props.language
       });
@@ -149,7 +165,7 @@ class _UserSignup extends React.Component {
 
   render() {
     return (
-      <Fade in={this.state.visible} timeout={500} unmountOnExit>
+      <Fade in={this.state.visible} timeout={500} unmountOnExit={true}>
         <Grid container spacing={3}>
           <Grid item xs={6}>
             <Button size="small" onClick={this.handleBack}>
@@ -182,51 +198,34 @@ class _UserSignup extends React.Component {
                   </Typography>
                 </Grid>
                 <Grid item xs={12} style={{ textAlign: "left" }}>
-                  <form>
+                  <ValidatorForm
+                    ref="form"
+                    onSubmit={this.handleCreateAccount}
+                    onError={errors => console.log(errors)}
+                  >
                     <Grid container>
                       <Grid item xs={1} />
                       <Grid item xs={10}>
-                        <TextField
+                        <TextValidator
                           id="email"
                           name="email"
                           label={this.state.emailLabelText_t}
                           value={this.state.email}
                           onChange={this.handleChange("email")}
                           margin="normal"
+                          validators={["required", "isEmail"]}
+                          errorMessages={[
+                            this.state.requiredFieldText_t,
+                            this.state.validEmailText_t
+                          ]}
                           fullWidth
                         />
                       </Grid>
                       <Grid item xs={1} />
-                      {/* <Grid item xs={1} />
-                      <Grid item xs={10}>
-                        <TextField
-                          id="first-name"
-                          name="first-name"
-                          label={this.state.firstNameLabelText_t}
-                          value={this.state.firstName}
-                          onChange={this.handleChange("firstName")}
-                          margin="normal"
-                          fullWidth
-                        />
-                      </Grid>
-                      <Grid item xs={1} /> */}
-
-                      {/* <Grid item xs={1} />
-                      <Grid item xs={10}>
-                        <TextField
-                          id="last-name"
-                          name="last-name"
-                          label={this.state.lastNameLabelText_t}
-                          value={this.state.lastName}
-                          onChange={this.handleChange("lastName")}
-                          margin="normal"
-                          fullWidth
-                        />
-                      </Grid>
-                      <Grid item xs={1} /> */}
+                      <Divider />
                       <Grid item xs={1} />
                       <Grid item xs={10}>
-                        <TextField
+                        <TextValidator
                           id="password"
                           name="password"
                           type="password"
@@ -234,13 +233,19 @@ class _UserSignup extends React.Component {
                           value={this.state.password}
                           onChange={this.handleChange("password")}
                           margin="normal"
+                          validators={["required", "isPasswordLong"]}
+                          errorMessages={[
+                            this.state.requiredFieldText_t,
+                            this.state.passwordLengthText_t
+                          ]}
                           fullWidth
                         />
                       </Grid>
                       <Grid item xs={1} />
+                      <Divider />
                       <Grid item xs={1} />
                       <Grid item xs={10} style={{ marginBottom: "30px" }}>
-                        <TextField
+                        <TextValidator
                           id="confirmPassword"
                           name="confirmPassword"
                           type="password"
@@ -248,6 +253,11 @@ class _UserSignup extends React.Component {
                           value={this.state.confirmPassword}
                           onChange={this.handleChange("confirmPassword")}
                           margin="normal"
+                          validators={["isPasswordMatch", "required"]}
+                          errorMessages={[
+                            this.state.passwordMatchText_t,
+                            this.state.requiredFieldText_t
+                          ]}
                           fullWidth
                         />
                       </Grid>
@@ -261,14 +271,13 @@ class _UserSignup extends React.Component {
                             fontStyle: "light",
                             height: "100%"
                           }}
-                          onClick={this.handleCreateAccount}
                         >
                           {this.state.createAccountText_t}
                           <KeyboardArrowRightIcon />
                         </Button>
                       </Grid>
                     </Grid>
-                  </form>
+                  </ValidatorForm>
                 </Grid>
               </Grid>
             </Paper>

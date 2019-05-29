@@ -52,6 +52,10 @@ Advocate.init(
         msg: "Email address already in use!"
       }
     },
+    phone_number: {
+      type: Sequelize.STRING,
+      allowNull: true
+    },
     password_digest: {
       type: Sequelize.STRING
     },

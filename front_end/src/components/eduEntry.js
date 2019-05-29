@@ -13,8 +13,12 @@ import TextField from "@material-ui/core/TextField";
 import KeyboardArrowRightIcon from "@material-ui/icons/KeyboardArrowRight";
 import history from "../history";
 import AddIcon from "@material-ui/icons/Add";
-import { KeyboardTimePicker, KeyboardDatePicker } from "@material-ui/pickers";
+import { KeyboardDatePicker } from "@material-ui/pickers";
 import Divider from "@material-ui/core/Divider";
+import FormControl from "@material-ui/core/FormControl";
+import InputLabel from "@material-ui/core/InputLabel";
+import MenuItem from "@material-ui/core/MenuItem";
+import Select from "@material-ui/core/Select";
 import {
   ValidatorForm,
   TextValidator,
@@ -23,72 +27,84 @@ import {
 
 const socketIDs = [];
 
-export default class WorkEntry extends React.Component {
+export default class EduEntry extends React.Component {
   state = {
     visible: false,
-    companyName: "",
+    schoolName: "",
     startDate: new Date(),
     finishDate: new Date(),
-    positionTitle: "",
-    workDescription: "",
-    reference: "",
-    numSkills: 1,
-    skillsLearned: []
+    degreeType: "",
+    degreeMajor: "",
+    eduDescription: ""
   };
 
   async componentDidMount() {
+    socketIDs.push(
+      await SocketHandler.registerSocketListener("eduEntrySaved", response => {
+        console.log(response);
+        setTimeout(() => {
+          history.push("/eduQuestion");
+        }, 500);
+      })
+    );
     socketIDs.push(
       await SocketHandler.registerSocketListener("textTranslated", response => {
         console.log(response);
         this.setState({
           ...this.state,
           headerText_t: response.headerText,
-          companyNameDescriptorText_t: response.companyNameDescriptorText,
-          companyNameLabelText_t: response.companyNameLabelText,
+          schoolNameDescriptorText_t: response.schoolNameDescriptorText,
+          schoolNameLabelText_t: response.schoolNameLabelText,
           startDateDescriptorText_t: response.startDateDescriptorText,
           startDateLabelText_t: response.startDateLabelText,
           finishDateDescriptorText_t: response.finishDateDescriptorText,
           finishDateLabelText_t: response.finishDateLabelText,
-          positionTitleDescriptorText_t: response.positionTitleDescriptorText,
-          positionTitleLabelText_t: response.positionTitleLabelText,
-          referenceDescriptorText_t: response.referenceDescriptorText,
-          referenceLabelText_t: response.referenceLabelText,
-          workDescriptorText_t: response.workDescriptorText,
-          workLabelText_t: response.workLabelText,
-          skillsLearnedDescriptorText_t: response.skillsLearnedDescriptorText,
-          skillsLearnedLabelText_t: response.skillsLearnedLabelText,
-          skillButtonText_t: response.skillButtonText,
+          degreeTypeDescriptorText_t: response.degreeTypeDescriptorText,
+          degreeTypeLabelText_t: response.degreeTypeLabelText,
+          degreeMajorDescriptorText_t: response.degreeMajorDescriptorText,
+          degreeMajorLabelText_t: response.degreeMajorLabelText,
           submitButtonText_t: response.submitButtonText,
           requiredErrorText_t: response.requiredErrorText,
+          highSchoolText_t: response.highSchoolText,
+          associateDegreeText_t: response.associateDegreeText,
+          bachelorDegreeText_t: response.bachelorDegreeText,
+          masterDegreeText_t: response.masterDegreeText,
+          doctoralDegreeText_t: response.doctoralDegreeText,
+          otherDegreeText_t: response.otherDegreeText,
+          noneText_t: response.noneText,
+          selectText_t: response.selectText,
           visible: true
         });
       })
     );
     await SocketHandler.emit("requestAccountInfo");
     await SocketHandler.emit("translateText", {
-      headerText: "Please use the form below to describe your most recent job.",
-      companyNameDescriptorText:
-        "What is the name of the company that you worked for?",
-      companyNameLabelText: "Company name: ",
-      startDateDescriptorText: "On what date did you start working this job?",
+      headerText:
+        "Please use the form below to describe your educational background.",
+      schoolNameDescriptorText:
+        "What is the name of the school that you attended?",
+      schoolNameLabelText: "School name: ",
+      startDateDescriptorText:
+        "On what date did you start attending this school?",
       startDateLabelText: "Start date: ",
-      finishDateDescriptorText: "On what date did you finish working this job?",
+      finishDateDescriptorText:
+        "On what date did you finish attending this school?",
       finishDateLabelText: "Finish date: ",
-      positionTitleDescriptorText:
-        "What job title did you have? (For example: 'accountant' or 'seamstress')",
-      positionTitleLabelText: "Position title: ",
-      referenceDescriptorText:
-        "Please provide a reference (a contact phone number or email for your manager at this job).",
-      referenceLabelText: "Manager contact info: ",
-      workDescriptorText:
-        "Please describe the work that you were responsible for.",
-      workLabelText: "Work Description: ",
-      skillsLearnedDescriptorText:
-        "Please list each skill that you learned while doing this work (For example: 'javascript', 'leadership', 'time management', 'operation of heavy equipment'). Please place only one skill on each line and press the button below to add more lines as needed.",
-      skillsLearnedLabelText: "Skill Learned: ",
-      skillButtonText: "Add another skill",
+      degreeTypeDescriptorText: "What type of degree did you earn?",
+      degreeTypeLabelText: "Degree type: ",
+      degreeMajorDescriptorText:
+        "What was your area of study or educational focus? (Please leave empty if not applicable)",
+      degreeMajorLabelText: "Area of study: ",
       submitButtonText: "Continue",
-      requiredErrorText: "This field is required"
+      requiredErrorText: "This field is required",
+      highSchoolText: "High School Diploma",
+      associateDegreeText: "Associate Degree",
+      bachelorDegreeText: "Bachelor's Degree",
+      masterDegreeText: "Master's Degree",
+      doctoralDegreeText: "Doctoral Degree",
+      otherDegreeText: "Other",
+      noneText: "None",
+      selectText: "Select an option..."
     });
   }
 
@@ -110,46 +126,91 @@ export default class WorkEntry extends React.Component {
     this.setState({ finishDate: date });
   };
 
-  incrementNumSkills = () => {
-    console.log("in here");
-    this.setState({
-      numSkills: this.state.numSkills + 1
-    });
-    this.forceUpdate();
-  };
-
-  renderSkillBoxes = () => {
-    let boxes = [];
-    for (let i = 0; i < this.state.numSkills; i++) {
-      console.log("rendering box");
-      boxes.push(
-        <TextField
-          id={`skill-${i}`}
-          name={`skill-${i}`}
-          label={this.state.skillsLearnedLabelText_t}
-          value={this.state[`skill-${i}`]}
-          onChange={this.handleChange(`skill-${i}`)}
-          margin="normal"
-          fullWidth
-        />
-      );
-    }
-    return boxes;
-  };
-
   handleSubmit = e => {
     this.setState({ visible: false });
-    setTimeout(() => {
-      history.push("/workQuestion");
-    }, 500);
+  };
+
+  degreeOptions = () => {
+    const options = [
+      {
+        key: "High School Diploma",
+        text: this.state.highSchoolText_t,
+        value: "High School Diploma"
+      },
+      {
+        key: "Associate Degree",
+        text: this.state.associateDegreeText_t,
+        value: "Associate Degree"
+      },
+      {
+        key: "Bachelor's Degree",
+        text: this.state.bachelorDegreeText_t,
+        value: "Bachelor's Degree"
+      },
+      {
+        key: "Master's Degree",
+        text: this.state.masterDegreeText_t,
+        value: "Master's Degree"
+      },
+      {
+        key: "Doctoral Degree",
+        text: this.state.doctoralDegreeText_t,
+        value: "Doctoral Degree"
+      },
+      {
+        key: "Other",
+        text: this.state.otherDegreeText_t,
+        value: "Other"
+      }
+    ];
+
+    return (
+      <div>
+        <Hidden smDown>
+          <FormControl style={{ minWidth: "240px" }} fullWidth>
+            <SelectValidator
+              autoWidth
+              label={this.state.selectText_t}
+              value={this.state.degreeType}
+              onChange={this.handleChange("degreeType")}
+              validators={["required"]}
+              errorMessages={[this.state.requiredErrorText_t]}
+            >
+              <MenuItem value="">
+                <em>{this.state.noneText_t}</em>
+              </MenuItem>
+              {options.map(option => {
+                return <MenuItem value={option.value}>{option.text}</MenuItem>;
+              })}
+            </SelectValidator>
+          </FormControl>
+        </Hidden>
+
+        <Hidden mdUp>
+          <FormControl style={{ minWidth: "240px" }} fullWidth>
+            <SelectValidator
+              native
+              label={this.state.selectText_t}
+              value={this.state.degreeType}
+              onChange={this.handleChange("degreeType")}
+              validators={["required"]}
+              errorMessages={[this.state.requiredErrorText_t]}
+            >
+              <option value="">{this.state.noneText_t}</option>
+              {options.map(option => {
+                return <option value={option.value}>{option.text}</option>;
+              })}
+            </SelectValidator>
+          </FormControl>
+        </Hidden>
+      </div>
+    );
   };
 
   render() {
-    console.log("rendering", this.state.numSkills);
     return (
       <Fade in={this.state.visible} timeout={500} unmountOnExit={true}>
         <Grid container>
-          {" "}
           <Grid container spacing={3}>
             <Grid item xs={12} /> <Grid item xs={1} md={2} />
             <Grid item xs={10} md={8} style={{ minHeight: "75px" }}>
@@ -181,34 +242,14 @@ export default class WorkEntry extends React.Component {
                             variant={"body1"}
                             style={{ marginTop: "30px" }}
                           >
-                            {this.state.companyNameDescriptorText_t}
-                          </Typography>
-                          <TextField
-                            id="companyName"
-                            name="companyName"
-                            label={this.state.companyNameLabelText_t}
-                            value={this.state.companyName}
-                            onChange={this.handleChange("companyName")}
-                            margin="normal"
-                            fullWidth
-                          />
-                        </Grid>
-                        <Grid item xs={1} />
-                        <Divider />
-                        <Grid item xs={1} />
-                        <Grid item xs={10}>
-                          <Typography
-                            variant={"body1"}
-                            style={{ marginTop: "60px" }}
-                          >
-                            {this.state.positionTitleDescriptorText_t}
+                            {this.state.schoolNameDescriptorText_t}
                           </Typography>
                           <TextValidator
-                            id="positionTitle"
-                            name="positionTitle"
-                            label={this.state.positionTitleLabelText_t}
-                            value={this.state.positionTitle}
-                            onChange={this.handleChange("positionTitle")}
+                            id="schoolName"
+                            name="schoolName"
+                            label={this.state.schoolNameLabelText_t}
+                            value={this.state.schoolName}
+                            onChange={this.handleChange("schoolName")}
                             margin="normal"
                             validators={["required"]}
                             errorMessages={[this.state.requiredErrorText_t]}
@@ -267,17 +308,9 @@ export default class WorkEntry extends React.Component {
                             variant={"body1"}
                             style={{ marginTop: "60px" }}
                           >
-                            {this.state.referenceDescriptorText_t}
+                            {this.state.degreeTypeDescriptorText_t}
                           </Typography>
-                          <TextField
-                            id="reference"
-                            name="reference"
-                            label={this.state.referenceLabelText_t}
-                            value={this.state.reference}
-                            onChange={this.handleChange("reference")}
-                            margin="normal"
-                            fullWidth
-                          />
+                          {this.degreeOptions()}
                         </Grid>
                         <Grid item xs={1} />
                         <Divider />
@@ -287,55 +320,17 @@ export default class WorkEntry extends React.Component {
                             variant={"body1"}
                             style={{ marginTop: "60px" }}
                           >
-                            {this.state.workDescriptorText_t}
+                            {this.state.degreeMajorDescriptorText_t}
                           </Typography>
-                          <TextValidator
-                            id="workDescription"
-                            name="workDescription"
-                            label={this.state.workLabelText_t}
-                            value={this.state.workDescription}
-                            onChange={this.handleChange("workDescription")}
+                          <TextField
+                            id="degreeMajor"
+                            name="degreeMajor"
+                            label={this.state.degreeMajorLabelText_t}
+                            value={this.state.degreeMajor}
+                            onChange={this.handleChange("degreeMajor")}
                             margin="normal"
-                            validators={["required"]}
-                            errorMessages={[this.state.requiredErrorText_t]}
                             fullWidth
-                            multiline={true}
                           />
-                        </Grid>
-                        <Grid item xs={1} />
-                        <Divider />
-                        <Grid item xs={1} />
-                        <Grid item xs={10}>
-                          <Typography
-                            variant={"body1"}
-                            style={{ marginTop: "60px", marginBottom: "25px" }}
-                          >
-                            {this.state.skillsLearnedDescriptorText_t}
-                          </Typography>
-                          <Grid container>
-                            <Grid item xs={7}>
-                              {this.renderSkillBoxes()}
-                            </Grid>
-
-                            <Grid item xs={1} />
-                            <Grid item xs={4} style={{ position: "relative" }}>
-                              <Button
-                                type="button"
-                                variant="contained"
-                                style={{
-                                  position: "absolute",
-                                  fontStyle: "light",
-                                  marginTop: "10px",
-                                  marginBottom: "10px",
-                                  bottom: "0px"
-                                }}
-                                onClick={this.incrementNumSkills}
-                                fullWidth
-                              >
-                                {this.state.skillButtonText_t}
-                              </Button>
-                            </Grid>
-                          </Grid>
                         </Grid>
                         <Grid item xs={1} />
                         <Grid

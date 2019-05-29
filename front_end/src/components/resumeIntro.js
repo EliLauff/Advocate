@@ -21,27 +21,34 @@ export default class ResumeIntro extends React.Component {
 
   async componentDidMount() {
     socketIDs.push(
-      await SocketHandler.registerSocketListener(
-        "resumeIntroTranslated",
-        response => {
-          console.log(response);
-          this.setState({
-            ...this.state,
-            headerText_t: response.headerText,
-            descriptorText_t: response.descriptorText,
-            buttonText_t: response.buttonText,
-            visible: true
-          });
-        }
-      )
+      await SocketHandler.registerSocketListener("textTranslated", response => {
+        console.log(response);
+        this.setState({
+          ...this.state,
+          headerText_t: response.headerText,
+          descriptorText_t: response.descriptorText,
+          buttonText_t: response.buttonText,
+          visible: true
+        });
+      })
     );
-    await SocketHandler.emit("translateResumeIntro", {
+    socketIDs.push(
+      await SocketHandler.registerSocketListener("bioCreated", response => {
+        localStorage.setItem("active_bio", response.createdBio.id);
+        setTimeout(() => {
+          history.push("/contactInfo");
+        }, 500);
+      })
+    );
+    await SocketHandler.emit("translateText", {
       headerText:
         "Welcome to Advocate.  This is a resume builder designed for non-native english speakers.",
       descriptorText:
         "The resume builder will ask you a series of questions.  Answer them as clearly and as simply as possible.",
       buttonText: "Continue"
     });
+
+    await SocketHandler.emit("requestAccountInfo");
   }
 
   componentWillUnmount() {
@@ -50,11 +57,16 @@ export default class ResumeIntro extends React.Component {
     }
   }
 
+  handleSubmit = e => {
+    this.setState({ visible: false });
+    SocketHandler.emit("createNewBio");
+  };
+
   renderItems = () => {
     if (this.props.accountInfo) {
       if (
-        this.props.accountInfo.account_type === "advocate" ||
-        this.props.accountInfo.has_account === true
+        this.props.accountInfo.accountStuff.account_type === "advocate" ||
+        this.props.accountInfo.accountStuff.has_account === true
       ) {
         return (
           <Grid container spacing={3}>
@@ -70,10 +82,7 @@ export default class ResumeIntro extends React.Component {
                     xs={10}
                     style={{ marginTop: "10px", marginBottom: "10px" }}
                   >
-                    <Typography
-                      variant={"h4"}
-                      style={{ fontFamily: "Open Sans", fontStyle: "light" }}
-                    >
+                    <Typography variant={"h4"}>
                       {this.state.descriptorText_t}
                     </Typography>
                   </Grid>
@@ -86,7 +95,7 @@ export default class ResumeIntro extends React.Component {
                         fontStyle: "light",
                         height: "100%"
                       }}
-                      onClick={() => console.log("ok")}
+                      onClick={this.handleSubmit}
                     >
                       {this.state.buttonText_t}
                       <KeyboardArrowRightIcon />
@@ -124,10 +133,7 @@ export default class ResumeIntro extends React.Component {
                     xs={10}
                     style={{ marginTop: "10px", marginBottom: "10px" }}
                   >
-                    <Typography
-                      variant={"h4"}
-                      style={{ fontFamily: "Open Sans", fontStyle: "light" }}
-                    >
+                    <Typography variant={"h4"}>
                       {this.state.descriptorText_t}
                     </Typography>
                   </Grid>
@@ -140,7 +146,7 @@ export default class ResumeIntro extends React.Component {
                         fontStyle: "light",
                         height: "100%"
                       }}
-                      onClick={() => console.log("ok")}
+                      onClick={this.languagesPage}
                     >
                       {this.state.buttonText_t}
                       <KeyboardArrowRightIcon />
@@ -158,7 +164,7 @@ export default class ResumeIntro extends React.Component {
 
   render() {
     return (
-      <Fade in={this.state.visible} timeout={500} unmountOnExit>
+      <Fade in={this.state.visible} timeout={500} unmountOnExit={true}>
         <Grid container>{this.renderItems()}</Grid>
       </Fade>
     );

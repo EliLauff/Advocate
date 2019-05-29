@@ -13,7 +13,7 @@ EducationEntry.init(
     },
     school_name: {
       type: Sequelize.STRING,
-      allowNull: false
+      allowNull: true
     },
     start_date: {
       type: Sequelize.DATE,
@@ -25,17 +25,9 @@ EducationEntry.init(
     },
     degree_type: {
       type: Sequelize.STRING,
-      allowNull: false
-    },
-    degree_major: {
-      type: Sequelize.STRING,
-      allowNull: false
-    },
-    education_description: {
-      type: Sequelize.STRING,
       allowNull: true
     },
-    skills_learned: {
+    degree_major: {
       type: Sequelize.STRING,
       allowNull: true
     }

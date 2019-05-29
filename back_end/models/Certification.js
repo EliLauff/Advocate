@@ -5,8 +5,8 @@ const sqlDB = require("./sqlDB");
 const Model = Sequelize.Model;
 const DataTypes = Sequelize.DataTypes;
 
-class Bio extends Model {}
-Bio.init(
+class Certification extends Model {}
+Certification.init(
   {
     account_id: {
       type: DataTypes.UUID,
@@ -19,10 +19,10 @@ Bio.init(
   },
   {
     sequelize: sqlDB,
-    modelName: "bio"
+    modelName: "certification"
   }
 );
 
-module.exports = Bio;
+module.exports = Certification;
 
 sqlDB.sync();

@@ -26,6 +26,13 @@ import Home from "../components/home";
 import ResumeIntro from "../components/resumeIntro";
 import ContactInfo from "../components/contactInfo";
 import WorkEntry from "../components/workEntry";
+import WorkQuestion from "../components/workQuestion";
+import EduEntry from "../components/eduEntry";
+import EduQuestion from "../components/eduQuestion";
+import Certifications from "../components/certifications";
+import Languages from "../components/languages";
+import { MuiPickersUtilsProvider } from "@material-ui/pickers";
+import DateFnsUtils from "@date-io/date-fns";
 
 const drawerWidth = 240;
 
@@ -67,10 +74,10 @@ export class Dashboard extends React.Component {
       "accountInfoReceived",
       response => {
         console.log("info updated");
+        console.log(response);
         this.setState({
           ...this.state,
-          accountInfo: response.accountInfo,
-          accountUsers: response.accountUsers
+          accountInfo: response.accountInfo
         });
       }
     );
@@ -209,7 +216,7 @@ export class Dashboard extends React.Component {
                   <Collapse
                     in={this.state.usersOpen}
                     timeout="auto"
-                    unmountOnExit
+                    unmountOnExit={true}
                   >
                     <List component="div" disablePadding>
                       {}
@@ -241,7 +248,7 @@ export class Dashboard extends React.Component {
                   <Collapse
                     in={this.state.resumesOpen}
                     timeout="auto"
-                    unmountOnExit
+                    unmountOnExit={true}
                   >
                     <List component="div" disablePadding>
                       {}
@@ -324,7 +331,7 @@ export class Dashboard extends React.Component {
                   <Collapse
                     in={this.state.resumesOpen}
                     timeout="auto"
-                    unmountOnExit
+                    unmountOnExit={true}
                   >
                     <List component="div" disablePadding>
                       {}
@@ -365,45 +372,77 @@ export class Dashboard extends React.Component {
 
   render() {
     return (
-      <Fade in={this.state.visible} timeout={500} unmountOnExit>
-        <div>
+      <MuiPickersUtilsProvider utils={DateFnsUtils}>
+        <Fade in={this.state.visible} timeout={500} unmountOnExit={true}>
           <div>
-            <AppBar position="sticky" color={"white"}>
-              {this.renderToolbar()}
-            </AppBar>
-            {this.renderMenu()}
+            <div>
+              <AppBar position="sticky" color={"white"}>
+                {this.renderToolbar()}
+              </AppBar>
+              {this.renderMenu()}
+            </div>
+            <Grid container spacing={3}>
+              <Grid item xs={12} />
+              <Router history={history}>
+                <Switch>
+                  <Route
+                    path="/newResume"
+                    render={() => (
+                      <ResumeIntro accountInfo={this.state.accountInfo} />
+                    )}
+                  />
+                  <Route
+                    path="/contactInfo"
+                    render={() => (
+                      <ContactInfo accountInfo={this.state.accountInfo} />
+                    )}
+                  />
+                  <Route
+                    path="/workEntry"
+                    render={() => (
+                      <WorkEntry accountInfo={this.state.accountInfo} />
+                    )}
+                  />
+                  <Route
+                    path="/workQuestion"
+                    render={() => (
+                      <WorkQuestion accountInfo={this.state.accountInfo} />
+                    )}
+                  />
+                  <Route
+                    path="/eduEntry"
+                    render={() => (
+                      <EduEntry accountInfo={this.state.accountInfo} />
+                    )}
+                  />
+                  <Route
+                    path="/eduQuestion"
+                    render={() => (
+                      <EduQuestion accountInfo={this.state.accountInfo} />
+                    )}
+                  />
+                  <Route
+                    path="/certifications"
+                    render={() => (
+                      <Certifications accountInfo={this.state.accountInfo} />
+                    )}
+                  />
+                  <Route
+                    path="/languages"
+                    render={() => (
+                      <Languages accountInfo={this.state.accountInfo} />
+                    )}
+                  />
+                  <Route
+                    path=""
+                    render={() => <Home accountInfo={this.state.accountInfo} />}
+                  />
+                </Switch>
+              </Router>
+            </Grid>
           </div>
-          <Grid container spacing={3}>
-            <Grid item xs={12} />
-            <Router history={history}>
-              <Switch>
-                <Route
-                  path="/newResume"
-                  render={() => (
-                    <ResumeIntro accountInfo={this.state.accountInfo} />
-                  )}
-                />
-                <Route
-                  path="/contactInfo"
-                  render={() => (
-                    <ContactInfo accountInfo={this.state.accountInfo} />
-                  )}
-                />
-                <Route
-                  path="/workEntry"
-                  render={() => (
-                    <WorkEntry accountInfo={this.state.accountInfo} />
-                  )}
-                />
-                <Route
-                  path=""
-                  render={() => <Home accountInfo={this.state.accountInfo} />}
-                />
-              </Switch>
-            </Router>
-          </Grid>
-        </div>
-      </Fade>
+        </Fade>
+      </MuiPickersUtilsProvider>
     );
   }
 }

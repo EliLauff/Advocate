@@ -5,24 +5,32 @@ const sqlDB = require("./sqlDB");
 const Model = Sequelize.Model;
 const DataTypes = Sequelize.DataTypes;
 
-class Bio extends Model {}
-Bio.init(
+class Language extends Model {}
+Language.init(
   {
     account_id: {
       type: DataTypes.UUID,
       allowNull: false
     },
-    description: {
+    name: {
       type: Sequelize.STRING,
+      allowNull: true
+    },
+    speaking_score: {
+      type: Sequelize.INTEGER,
+      allowNull: true
+    },
+    writing_score: {
+      type: Sequelize.INTEGER,
       allowNull: true
     }
   },
   {
     sequelize: sqlDB,
-    modelName: "bio"
+    modelName: "language"
   }
 );
 
-module.exports = Bio;
+module.exports = Language;
 
 sqlDB.sync();

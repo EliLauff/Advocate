@@ -8,6 +8,8 @@ const User = require("./models/User");
 const Bio = require("./models/Bio");
 const EducationEntry = require("./models/EducationEntry");
 const WorkEntry = require("./models/WorkEntry");
+const Language = require("./models/Language");
+const Certification = require("./models/Certification");
 // Imports the Google Cloud client library
 const { Translate } = require("@google-cloud/translate");
 
@@ -24,7 +26,7 @@ const io = socketIo(8080, {
   handlePreflightRequest: function(req, res) {
     let headers = {
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
-      "Access-Control-Allow-Origin": "http://10.185.7.45:3000",
+      "Access-Control-Allow-Origin": "http://10.185.3.240:3000",
       "Access-Control-Allow-Credentials": true
     };
     res.writeHead(200, headers);
@@ -37,13 +39,21 @@ io.on("connection", async socket => {
     let [type, token] = socket.handshake.headers.authorization.split(" ");
     let result = jwt.decode(token);
     let accountID = result.id;
-    let foundAdvocate = await Advocate.findOne({
+    let secureAdvocate = await Advocate.findOne({
       where: { uuid: accountID },
       attributes: { exclude: ["password_digest", "uuid"] }
     });
-    let foundUser = await User.findOne({
+    let secureUser = await User.findOne({
       where: { uuid: accountID },
       attributes: { exclude: ["password_digest", "uuid"] }
+    });
+    let foundAdvocate = await Advocate.findOne({
+      where: { uuid: accountID },
+      attributes: { exclude: ["password_digest"] }
+    });
+    let foundUser = await User.findOne({
+      where: { uuid: accountID },
+      attributes: { exclude: ["password_digest"] }
     });
     let account_language = "";
     if (foundAdvocate !== null) {
@@ -55,28 +65,58 @@ io.on("connection", async socket => {
     //socket connections for user model
     socket.on("requestAccountInfo", async () => {
       if (foundAdvocate !== null) {
-        console.log("you got to the dashboard with an advocate acct.");
-        accountUsers = await User.findAll({
+        let accountUsers = await User.findAll({
           where: { advocate_id: accountID },
           attributes: { exclude: "password_digest" }
         });
-        console.log(foundAdvocate);
-        console.log("accountUsers: ", accountUsers);
+        let accountBios = await Bio.findAll({
+          where: { account_id: accountID },
+          attributes: { exclude: "account_id" }
+        });
+        let accountLangs = await Language.findAll({
+          where: { account_id: accountID },
+          attributes: { exclude: "account_id" }
+        });
+        let accountCerts = await Certification.findAll({
+          where: { account_id: accountID },
+          attributes: { exclude: "account_id" }
+        });
         socket.emit("accountInfoReceived", {
-          accountInfo: foundAdvocate,
-          accountUsers: accountUsers
+          accountInfo: {
+            accountStuff: secureAdvocate,
+            accountUsers: accountUsers,
+            accountBios: accountBios,
+            accountLangs: accountLangs,
+            accountCerts: accountCerts
+          }
         });
       } else if (foundUser !== null && foundUser.has_account === "true") {
-        console.log(foundUser);
+        let accountBios = await Bio.findAll({
+          where: { account_id: accountID },
+          attributes: { exclude: "account_id" }
+        });
+        let accountLangs = await Language.findAll({
+          where: { account_id: accountID },
+          attributes: { exclude: "account_id" }
+        });
         socket.emit("accountInfoReceived", {
-          accountInfo: foundUser,
-          accountUsers: null
+          accountInfo: {
+            accountStuff: secureUser,
+            accountUsers: null,
+            accountBios: accountBios,
+            accountLangs: accountLangs,
+            accountCerts: accountCerts
+          }
         });
       } else {
-        console.log(foundUser);
         socket.emit("accountInfoReceived", {
-          accountInfo: foundUser,
-          accountUsers: null
+          accountInfo: {
+            accountStuff: secureUser,
+            accountUsers: null,
+            accountBios: accountBios,
+            accountLangs: accountLangs,
+            accountCerts: accountCerts
+          }
         });
       }
     });
@@ -166,7 +206,58 @@ io.on("connection", async socket => {
       }
     });
 
-    socket.on("translateResumeIntro", async payload => {
+    // socket.on("translateResumeIntro", async payload => {
+    //   if (account_language !== "en") {
+    //     const options = {
+    //       to: account_language,
+    //       model: "nmt"
+    //     };
+    //     const response = {};
+    //     for (let keyText in payload) {
+    //       let results = await translator.translate(payload[keyText], options);
+    //       response[keyText] = results[0];
+    //     }
+    //     socket.emit("resumeIntroTranslated", response);
+    //   } else {
+    //     socket.emit("resumeIntroTranslated", payload);
+    //   }
+    // });
+
+    // socket.on("translateContactInfo", async payload => {
+    //   if (account_language !== "en") {
+    //     const options = {
+    //       to: account_language,
+    //       model: "nmt"
+    //     };
+    //     const response = {};
+    //     for (let keyText in payload) {
+    //       let results = await translator.translate(payload[keyText], options);
+    //       response[keyText] = results[0];
+    //     }
+    //     socket.emit("contactInfoTranslated", response);
+    //   } else {
+    //     socket.emit("contactInfoTranslated", payload);
+    //   }
+    // });
+
+    // socket.on("translateWorkEntry", async payload => {
+    //   if (account_language !== "en") {
+    //     const options = {
+    //       to: account_language,
+    //       model: "nmt"
+    //     };
+    //     const response = {};
+    //     for (let keyText in payload) {
+    //       let results = await translator.translate(payload[keyText], options);
+    //       response[keyText] = results[0];
+    //     }
+    //     socket.emit("workEntryTranslated", response);
+    //   } else {
+    //     socket.emit("workEntryTranslated", payload);
+    //   }
+    // });
+
+    socket.on("translateText", async payload => {
       if (account_language !== "en") {
         const options = {
           to: account_language,
@@ -177,44 +268,76 @@ io.on("connection", async socket => {
           let results = await translator.translate(payload[keyText], options);
           response[keyText] = results[0];
         }
-        socket.emit("resumeIntroTranslated", response);
+        socket.emit("textTranslated", response);
       } else {
-        socket.emit("resumeIntroTranslated", payload);
+        socket.emit("textTranslated", payload);
       }
     });
 
-    socket.on("translateContactInfo", async payload => {
-      if (account_language !== "en") {
-        const options = {
-          to: account_language,
-          model: "nmt"
-        };
-        const response = {};
-        for (let keyText in payload) {
-          let results = await translator.translate(payload[keyText], options);
-          response[keyText] = results[0];
-        }
-        socket.emit("contactInfoTranslated", response);
-      } else {
-        socket.emit("contactInfoTranslated", payload);
-      }
+    socket.on("createNewBio", async () => {
+      let newBio = await Bio.build();
+      newBio.account_id = accountID;
+      await newBio.save();
+      socket.emit("bioCreated", {
+        createdBio: newBio
+      });
     });
 
-    socket.on("translateWorkEntry", async payload => {
-      if (account_language !== "en") {
-        const options = {
-          to: account_language,
-          model: "nmt"
-        };
-        const response = {};
+    socket.on("updateUser", async payload => {
+      if (foundAdvocate !== null) {
         for (let keyText in payload) {
-          let results = await translator.translate(payload[keyText], options);
-          response[keyText] = results[0];
+          foundAdvocate[keyText] = await payload[keyText];
         }
-        socket.emit("workEntryTranslated", response);
-      } else {
-        socket.emit("workEntryTranslated", payload);
+        await foundAdvocate.save();
+      } else if (foundUser !== null) {
+        for (let keyText in payload) {
+          foundUser[keyText] = await payload[keyText];
+        }
+        await foundUser.save();
       }
+      socket.emit("userUpdated");
+    });
+
+    socket.on("addLanguages", async payload => {
+      Language.destroy({ where: { account_id: accountID } });
+      for (let language of payload.languageData) {
+        if (
+          language.name !== "" &&
+          language.speaking !== "" &&
+          language.writing !== ""
+        ) {
+          let newLanguage = await Language.build();
+          newLanguage.name = language.name;
+          newLanguage.speaking_score = language.speaking;
+          newLanguage.writing_score = language.writing;
+          newLanguage.account_id = accountID;
+          await newLanguage.save();
+        }
+      }
+      socket.emit("languagesAdded");
+    });
+
+    socket.on("addCerts", async payload => {
+      Certification.destroy({ where: { account_id: accountID } });
+      for (let certification of payload.certData) {
+        if (certification !== "") {
+          let newCertification = await Certification.build();
+          newCertification.description = certification;
+          newCertification.account_id = accountID;
+          await newCertification.save();
+        }
+      }
+      socket.emit("certsAdded");
+    });
+
+    socket.on("createEduEntry", async payload => {
+      console.log(payload.bio_id)
+      let newEduEntry = await EducationEntry.build();
+      newEduEntry.bio_id = payload.bio_id;
+      await newEduEntry.save();
+      socket.emit("eduEntryCreated", {
+        newEduEntry: newEduEntry
+      });
     });
   }
 
@@ -363,6 +486,26 @@ io.on("connection", async socket => {
         options
       );
       const translatedEmailLabelText = emailLabelTextResults[0];
+      let requiredFieldTextResults = await translator.translate(
+        payload.requiredFieldText,
+        options
+      );
+      const translatedRequiredFieldText = requiredFieldTextResults[0];
+      let validEmailTextResults = await translator.translate(
+        payload.validEmailText,
+        options
+      );
+      const translatedValidEmailText = validEmailTextResults[0];
+      let passwordLengthTextResults = await translator.translate(
+        payload.passwordLengthText,
+        options
+      );
+      const translatedPasswordLengthText = passwordLengthTextResults[0];
+      let passwordMatchTextResults = await translator.translate(
+        payload.passwordMatchText,
+        options
+      );
+      const translatedPasswordMatchText = passwordMatchTextResults[0];
       socket.emit("userSignupTranslated", {
         returnedDescriptor: translatedDescriptor,
         returnedSignupHeader: translatedSignupHeader,
@@ -374,7 +517,11 @@ io.on("connection", async socket => {
         returnedLoginText: translatedLogin,
         returnedGoBackText: translatedGoBack,
         returnedCreateAccountText: translatedCreateAccountText,
-        returnedEmailLabelText: translatedEmailLabelText
+        returnedEmailLabelText: translatedEmailLabelText,
+        requiredFieldText: translatedRequiredFieldText,
+        validEmailText: translatedValidEmailText,
+        passwordLengthText: translatedPasswordLengthText,
+        passwordMatchText: translatedPasswordMatchText
       });
     } else {
       socket.emit("userSignupTranslated", {
@@ -388,7 +535,11 @@ io.on("connection", async socket => {
         returnedLoginText: payload.loginText,
         returnedGoBackText: payload.goBackText,
         returnedCreateAccountText: payload.createAccountText,
-        returnedEmailLabelText: payload.emailLabelText
+        returnedEmailLabelText: payload.emailLabelText,
+        requiredFieldText: payload.requiredFieldText,
+        validEmailText: payload.validEmailText,
+        passwordLengthText: payload.passwordLengthText,
+        passwordMatchText: payload.passwordMatchText
       });
     }
   });
@@ -454,6 +605,26 @@ io.on("connection", async socket => {
         options
       );
       const translatedEmailLabelText = emailLabelTextResults[0];
+      let requiredFieldTextResults = await translator.translate(
+        payload.requiredFieldText,
+        options
+      );
+      const translatedRequiredFieldText = requiredFieldTextResults[0];
+      let validEmailTextResults = await translator.translate(
+        payload.validEmailText,
+        options
+      );
+      const translatedValidEmailText = validEmailTextResults[0];
+      let passwordLengthTextResults = await translator.translate(
+        payload.passwordLengthText,
+        options
+      );
+      const translatedPasswordLengthText = passwordLengthTextResults[0];
+      let passwordMatchTextResults = await translator.translate(
+        payload.passwordMatchText,
+        options
+      );
+      const translatedPasswordMatchText = passwordMatchTextResults[0];
       socket.emit("advocateSignupTranslated", {
         returnedDescriptor: translatedDescriptor,
         returnedSignupHeader: translatedSignupHeader,
@@ -465,7 +636,11 @@ io.on("connection", async socket => {
         returnedLoginText: translatedLogin,
         returnedGoBackText: translatedGoBack,
         returnedCreateAccountText: translatedCreateAccountText,
-        returnedEmailLabelText: translatedEmailLabelText
+        returnedEmailLabelText: translatedEmailLabelText,
+        requiredFieldText: translatedRequiredFieldText,
+        validEmailText: translatedValidEmailText,
+        passwordLengthText: translatedPasswordLengthText,
+        passwordMatchText: translatedPasswordMatchText
       });
     } else {
       socket.emit("advocateSignupTranslated", {
@@ -479,7 +654,11 @@ io.on("connection", async socket => {
         returnedLoginText: payload.loginText,
         returnedGoBackText: payload.goBackText,
         returnedCreateAccountText: payload.createAccountText,
-        returnedEmailLabelText: payload.emailLabelText
+        returnedEmailLabelText: payload.emailLabelText,
+        requiredFieldText: payload.requiredFieldText,
+        validEmailText: payload.validEmailText,
+        passwordLengthText: payload.passwordLengthText,
+        passwordMatchText: payload.passwordMatchText
       });
     }
   });
@@ -518,12 +697,42 @@ io.on("connection", async socket => {
         options
       );
       const translatedEmailLabelText = emailLabelTextResults[0];
+      let requiredFieldTextResults = await translator.translate(
+        payload.requiredFieldText,
+        options
+      );
+      const translatedRequiredFieldText = requiredFieldTextResults[0];
+      let validEmailTextResults = await translator.translate(
+        payload.validEmailText,
+        options
+      );
+      const translatedValidEmailText = validEmailTextResults[0];
+      let passwordLengthTextResults = await translator.translate(
+        payload.passwordLengthText,
+        options
+      );
+      const translatedPasswordLengthText = passwordLengthTextResults[0];
+      let passwordMatchTextResults = await translator.translate(
+        payload.passwordMatchText,
+        options
+      );
+      const translatedPasswordMatchText = passwordMatchTextResults[0];
+      let authenticateTextResults = await translator.translate(
+        payload.authenticateText,
+        options
+      );
+      const translatedAuthenticateText = authenticateTextResults[0];
       socket.emit("loginTranslated", {
         returnedDescriptor: translatedDescriptor,
         returnedPasswordLabel: translatedPasswordLabel,
         returnedLoginText: translatedLogin,
         returnedGoBackText: translatedGoBack,
-        returnedEmailLabelText: translatedEmailLabelText
+        returnedEmailLabelText: translatedEmailLabelText,
+        requiredFieldText: translatedRequiredFieldText,
+        validEmailText: translatedValidEmailText,
+        passwordLengthText: translatedPasswordLengthText,
+        passwordMatchText: translatedPasswordMatchText,
+        authenticateText: translatedAuthenticateText
       });
     } else {
       socket.emit("loginTranslated", {
@@ -531,13 +740,17 @@ io.on("connection", async socket => {
         returnedPasswordLabel: payload.passwordLabelText,
         returnedLoginText: payload.loginText,
         returnedGoBackText: payload.goBackText,
-        returnedEmailLabelText: payload.emailLabelText
+        returnedEmailLabelText: payload.emailLabelText,
+        requiredFieldText: payload.requiredFieldText,
+        validEmailText: payload.validEmailText,
+        passwordLengthText: payload.passwordLengthText,
+        passwordMatchText: payload.passwordMatchText,
+        authenticateText: payload.authenticateText
       });
     }
   });
 
   socket.on("createUserAccount", async payload => {
-    console.log("in back end");
     let newUser = await User.build();
     newUser.email = payload.email;
     // newUser.first_name = payload.firstName;
@@ -547,14 +760,12 @@ io.on("connection", async socket => {
     newUser.has_account = true;
     // newUser.account_type = "user";
     await newUser.save();
-    console.log("user saved");
     socket.emit("userAccountCreated", {
       createdUser: newUser
     });
   });
 
   socket.on("createAdvocateAccount", async payload => {
-    console.log("in back end");
     let newAdvocate = await Advocate.build();
     newAdvocate.email = payload.email;
     newAdvocate.first_name = payload.firstName;
@@ -563,7 +774,6 @@ io.on("connection", async socket => {
     newAdvocate.language = payload.language;
     // newAdvocate.account_type = "advocate";
     await newAdvocate.save();
-    console.log("Advocate saved");
     socket.emit("advocateAccountCreated", {
       createdAdvocate: newAdvocate
     });
@@ -584,15 +794,15 @@ io.on("connection", async socket => {
       foundAdvocate !== null &&
       foundAdvocate.authenticate(payload.password)
     ) {
-      console.log("logging advocate in");
       socket.emit("advocateLoggedIn", {
         advocateInfo: foundAdvocate
       });
     } else if (foundUser !== null && foundUser.authenticate(payload.password)) {
-      console.log("logging user in");
       socket.emit("userLoggedIn", {
         userInfo: foundUser
       });
+    } else {
+      socket.emit("invalidLogin");
     }
   });
 });

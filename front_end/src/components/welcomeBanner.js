@@ -86,7 +86,25 @@ class _WelcomeBanner extends React.Component {
   };
 
   transitionOut = currentLanguage => {
-    const languages = ["en", "es", "fa", "sw", "ur", "my", "fr", "ar", "zh-CN"];
+    const languages = [
+      "en",
+      "es",
+      "ar",
+      "ne",
+      "sw",
+      "fr",
+      "so",
+      "my",
+      "zh-CN",
+      "tl",
+      "ht",
+      "vi",
+      "ur",
+      "ko",
+      "fa",
+      "hy",
+      "hi"
+    ];
     const index =
       languages.indexOf(currentLanguage) >= languages.length - 1
         ? 0
@@ -152,6 +170,7 @@ class _WelcomeBanner extends React.Component {
       { key: "ht", text: "Haitian Creole", value: "ht" },
       { key: "ha", text: "Hausa", value: "ha" },
       { key: "he", text: "Hebrew", value: "he" },
+      { key: "hi", text: "Hindi", value: "hi" },
       { key: "hu", text: "Hungarian", value: "hu" },
       { key: "is", text: "Icelandic", value: "is" },
       { key: "ig", text: "Igbo", value: "ig" },
@@ -260,7 +279,7 @@ class _WelcomeBanner extends React.Component {
 
   render() {
     return (
-      <Fade in={this.state.allVisible} timeout={500} unmountOnExit>
+      <Fade in={this.state.allVisible} timeout={500} unmountOnExit={true}>
         <Grid container spacing={3}>
           <Grid item xs={6} />
           <Grid item xs={6} style={{ textAlign: "right" }}>
@@ -276,8 +295,8 @@ class _WelcomeBanner extends React.Component {
             <Grid item xs={12} />
           </Hidden>
           <Grid item xs={1} md={2} />
-          <Grid item xs={10} md={8} style={{ minHeight: "215px" }}>
-            <Fade in={this.state.visible} timeout={500} unmountOnExit>
+          <Grid item xs={10} md={8} style={{ minHeight: "245px" }}>
+            <Fade in={this.state.visible} timeout={500}>
               <div style={{ textAlign: "center" }}>
                 <Typography
                   variant="h1"
@@ -311,15 +330,17 @@ class _WelcomeBanner extends React.Component {
           <Grid item xs={1} md={2} />
 
           <Grid item xs={1} md={2} />
-          <Grid item xs={10} md={8} style={{ textAlign: "center" }}>
-            <Button
-              variant="contained"
-              style={{ minWidth: "240px" }}
-              onClick={this.handleClick}
-            >
-              Continue
-            </Button>
-          </Grid>
+          <Fade in={this.state.selectedLanguage ? true : false} timeout={750}>
+            <Grid item xs={10} md={8} style={{ textAlign: "center" }}>
+              <Button
+                variant="contained"
+                style={{ minWidth: "240px" }}
+                onClick={this.handleClick}
+              >
+                Continue
+              </Button>
+            </Grid>
+          </Fade>
           <Grid item xs={1} md={2} />
         </Grid>
       </Fade>

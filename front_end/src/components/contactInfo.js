@@ -13,16 +13,21 @@ import TextField from "@material-ui/core/TextField";
 import KeyboardArrowRightIcon from "@material-ui/icons/KeyboardArrowRight";
 import history from "../history";
 import AddIcon from "@material-ui/icons/Add";
+import {
+  ValidatorForm,
+  TextValidator,
+  SelectValidator
+} from "react-material-ui-form-validator";
 
 const socketIDs = [];
 
 export default class ContactInfo extends React.Component {
   state = {
     visible: false,
-    firstName: this.props.accountInfo.first_name,
-    lastName: this.props.accountInfo.last_name,
+    firstName: this.props.accountInfo.accountStuff.first_name,
+    lastName: this.props.accountInfo.accountStuff.last_name,
     phone: "",
-    email: this.props.accountInfo.email,
+    email: this.props.accountInfo.accountStuff.email,
     headerText_t: "",
     firstNameLabelText_t: "",
     lastNameLabelText_t: "",
@@ -34,33 +39,41 @@ export default class ContactInfo extends React.Component {
 
   async componentDidMount() {
     socketIDs.push(
-      await SocketHandler.registerSocketListener(
-        "contactInfoTranslated",
-        response => {
-          console.log(response);
-          this.setState({
-            ...this.state,
-            headerText_t: response.headerText,
-            firstNameLabelText_t: response.firstNameLabelText,
-            lastNameLabelText_t: response.lastNameLabelText,
-            goBackText_t: response.goBackText,
-            emailLabelText_t: response.emailLabelText,
-            phoneLabelText_t: response.phoneLabelText,
-            buttonText_t: response.buttonText,
-            visible: true
-          });
-        }
-      )
+      await SocketHandler.registerSocketListener("textTranslated", response => {
+        console.log(response);
+        this.setState({
+          ...this.state,
+          headerText_t: response.headerText,
+          firstNameLabelText_t: response.firstNameLabelText,
+          lastNameLabelText_t: response.lastNameLabelText,
+          goBackText_t: response.goBackText,
+          emailLabelText_t: response.emailLabelText,
+          phoneLabelText_t: response.phoneLabelText,
+          buttonText_t: response.buttonText,
+          requiredFieldText_t: response.requiredFieldText,
+          validEmailText_t: response.validEmailText,
+          visible: true
+        });
+      })
+    );
+    socketIDs.push(
+      await SocketHandler.registerSocketListener("userUpdated", response => {
+        setTimeout(() => {
+          history.push("/languages");
+        }, 500);
+      })
     );
     await SocketHandler.emit("requestAccountInfo");
-    await SocketHandler.emit("translateContactInfo", {
+    await SocketHandler.emit("translateText", {
       headerText: "Please use the form below to provide your contact info.",
       firstNameLabelText: "First name: ",
       lastNameLabelText: "Last name: ",
       goBackText: "Go back",
       emailLabelText: "E-mail address: ",
       phoneLabelText: "Phone number: ",
-      buttonText: "continue"
+      buttonText: "continue",
+      requiredFieldText: "this field is required",
+      validEmailText: "this email is not valid"
     });
   }
 
@@ -72,6 +85,16 @@ export default class ContactInfo extends React.Component {
 
   handleChange = name => event => {
     this.setState({ [name]: event.target.value });
+  };
+
+  handleSubmit = e => {
+    this.setState({ visible: false });
+    SocketHandler.emit("updateUser", {
+      email: this.state.email,
+      first_name: this.state.firstName,
+      last_name: this.state.lastName,
+      phone_number: this.state.phone
+    });
   };
 
   renderItems = () => {
@@ -95,35 +118,42 @@ export default class ContactInfo extends React.Component {
           <Grid item xs={12} md={6} style={{ textAlign: "left" }}>
             <Paper>
               <Grid container>
-                <Grid
-                  item
-                  xs={12}
-                  style={{ marginTop: "10px", marginBottom: "10px" }}
-                >
-                  <form>
+                <Grid item xs={12} style={{ marginTop: "10px" }}>
+                  <ValidatorForm
+                    ref="form"
+                    onSubmit={this.handleSubmit}
+                    onError={errors => console.log(errors)}
+                  >
                     <Grid container>
                       <Grid item xs={1} />
                       <Grid item xs={10}>
-                        <TextField
+                        <TextValidator
                           id="email"
                           name="email"
                           label={this.state.emailLabelText_t}
                           value={this.state.email}
                           onChange={this.handleChange("email")}
                           margin="normal"
+                          validators={["required", "isEmail"]}
+                          errorMessages={[
+                            this.state.requiredFieldText_t,
+                            this.state.validEmailText_t
+                          ]}
                           fullWidth
                         />
                       </Grid>
                       <Grid item xs={1} />
                       <Grid item xs={1} />
                       <Grid item xs={10}>
-                        <TextField
+                        <TextValidator
                           id="first-name"
                           name="first-name"
                           label={this.state.firstNameLabelText_t}
                           value={this.state.firstName}
                           onChange={this.handleChange("firstName")}
                           margin="normal"
+                          validators={["required"]}
+                          errorMessages={[this.state.requiredFieldText_t]}
                           fullWidth
                         />
                       </Grid>
@@ -131,20 +161,22 @@ export default class ContactInfo extends React.Component {
 
                       <Grid item xs={1} />
                       <Grid item xs={10}>
-                        <TextField
+                        <TextValidator
                           id="last-name"
                           name="last-name"
                           label={this.state.lastNameLabelText_t}
                           value={this.state.lastName}
                           onChange={this.handleChange("lastName")}
                           margin="normal"
+                          validators={["required"]}
+                          errorMessages={[this.state.requiredFieldText_t]}
                           fullWidth
                         />
                       </Grid>
                       <Grid item xs={1} />
                       <Grid item xs={1} />
                       <Grid item xs={10}>
-                        <TextField
+                        <TextValidator
                           id="phone"
                           name="phone"
                           type="number"
@@ -156,23 +188,28 @@ export default class ContactInfo extends React.Component {
                         />
                       </Grid>
                       <Grid item xs={1} />
+                      <Grid
+                        item
+                        xs={12}
+                        style={{
+                          marginTop: "30px"
+                        }}
+                      >
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          fullWidth
+                          style={{
+                            fontStyle: "light",
+                            height: "100%"
+                          }}
+                        >
+                          {this.state.buttonText_t}
+                          <KeyboardArrowRightIcon />
+                        </Button>
+                      </Grid>
                     </Grid>
-                  </form>
-                </Grid>
-                <Grid item xs={12}>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    fullWidth
-                    style={{
-                      fontStyle: "light",
-                      height: "100%"
-                    }}
-                    onClick={() => console.log("ok")}
-                  >
-                    {this.state.buttonText_t}
-                    <KeyboardArrowRightIcon />
-                  </Button>
+                  </ValidatorForm>
                 </Grid>
               </Grid>
             </Paper>
@@ -185,7 +222,7 @@ export default class ContactInfo extends React.Component {
 
   render() {
     return (
-      <Fade in={this.state.visible} timeout={500} unmountOnExit>
+      <Fade in={this.state.visible} timeout={500} unmountOnExit={true}>
         <Grid container>{this.renderItems()}</Grid>
       </Fade>
     );

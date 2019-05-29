@@ -60,9 +60,16 @@ export default class Home extends React.Component {
     }
   }
 
+  newResume = e => {
+    this.setState({ visible: false });
+    setTimeout(() => {
+      history.push("/newResume");
+    }, 500);
+  };
+
   renderItems = () => {
     if (this.props.accountInfo) {
-      if (this.props.accountInfo.account_type === "advocate") {
+      if (this.props.accountInfo.accountStuff.account_type === "advocate") {
         return (
           <Grid container spacing={3}>
             <Grid item xs={12} />
@@ -90,10 +97,7 @@ export default class Home extends React.Component {
                     xs={10}
                     style={{ marginTop: "10px", marginBottom: "10px" }}
                   >
-                    <Typography
-                      variant={"body1"}
-                      style={{ fontFamily: "Open Sans", fontStyle: "light" }}
-                    >
+                    <Typography variant={"body1"}>
                       {this.state.a_resumeBodyText_t}
                     </Typography>
                   </Grid>
@@ -106,7 +110,7 @@ export default class Home extends React.Component {
                         fontStyle: "light",
                         height: "100%"
                       }}
-                      onClick={() => console.log("create resume")}
+                      onClick={this.newResume}
                     >
                       {this.state.a_resumeButtonText_t}
                       <KeyboardArrowRightIcon />
@@ -124,10 +128,7 @@ export default class Home extends React.Component {
                     xs={10}
                     style={{ marginTop: "10px", marginBottom: "10px" }}
                   >
-                    <Typography
-                      variant={"body1"}
-                      style={{ fontFamily: "Open Sans", fontStyle: "light" }}
-                    >
+                    <Typography variant={"body1"}>
                       {this.state.a_inviteBodyText_t}
                     </Typography>
                   </Grid>
@@ -180,10 +181,7 @@ export default class Home extends React.Component {
                     xs={10}
                     style={{ marginTop: "10px", marginBottom: "10px" }}
                   >
-                    <Typography
-                      variant={"body1"}
-                      style={{ fontFamily: "Open Sans", fontStyle: "light" }}
-                    >
+                    <Typography variant={"body1"}>
                       {this.state.u_resumeBodyText_t}
                     </Typography>
                   </Grid>
@@ -196,7 +194,7 @@ export default class Home extends React.Component {
                         fontStyle: "light",
                         height: "100%"
                       }}
-                      onClick={() => console.log("create resume")}
+                      onClick={this.newResume}
                     >
                       {this.state.u_resumeButtonText_t}
                       <KeyboardArrowRightIcon />
@@ -214,7 +212,7 @@ export default class Home extends React.Component {
 
   render() {
     return (
-      <Fade in={this.state.visible} timeout={500} unmountOnExit>
+      <Fade in={this.state.visible} timeout={500} unmountOnExit={true}>
         <Grid container>{this.renderItems()}</Grid>
       </Fade>
     );

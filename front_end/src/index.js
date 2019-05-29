@@ -6,8 +6,6 @@ import { store } from "./reducers/store";
 import { Provider } from "react-redux";
 import { createMuiTheme, MuiThemeProvider } from "@material-ui/core/styles";
 import createBreakpoints from "@material-ui/core/styles/createBreakpoints";
-import { MuiPickersUtilsProvider } from "@material-ui/pickers";
-import DateFnsUtils from "@date-io/date-fns";
 
 function pxToRem(value) {
   return `${value / 16}rem`;
@@ -61,11 +59,9 @@ const theme = createMuiTheme({
 
 ReactDOM.render(
   <MuiThemeProvider theme={theme}>
-    <MuiPickersUtilsProvider utils={DateFnsUtils}>
-      <Provider store={store}>
-        <App />
-      </Provider>
-    </MuiPickersUtilsProvider>
+    <Provider store={store}>
+      <App />
+    </Provider>
   </MuiThemeProvider>,
   document.getElementById("root")
 );
