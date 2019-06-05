@@ -110,10 +110,6 @@ export default class EduQuestion extends React.Component {
       <Fade in={this.state.visible} timeout={500} unmountOnExit={true}>
         <Grid container spacing={3}>
           <Grid item xs={6}>
-            <Button size="small" onClick={this.handleBack}>
-              <KeyboardArrowLeftIcon />
-              {this.state.goBackText_t}
-            </Button>
           </Grid>
           <Grid item xs={6} style={{ textAlign: "right" }} />
           <Grid item xs={12} />

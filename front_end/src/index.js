@@ -35,6 +35,18 @@ const theme = createMuiTheme({
           fontSize: pxToRem(20)
         }
       },
+      h5: {
+        fontSize: pxToRem(16),
+        [breakpoints.up("md")]: {
+          fontSize: pxToRem(19)
+        }
+      },
+      h6: {
+        fontSize: pxToRem(15),
+        [breakpoints.up("md")]: {
+          fontSize: pxToRem(18)
+        }
+      },
       body1: {
         fontSize: pxToRem(14),
         [breakpoints.up("md")]: {

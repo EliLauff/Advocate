@@ -245,19 +245,17 @@ export default class Languages extends React.Component {
 
           <Hidden mdUp>
             <FormControl fullWidth>
-              <SelectValidator
-                label={this.state.speakingProficiencyLabelText_t}
-                native
+              <InputLabel>{this.state.speakingProficiencyLabelText_t}</InputLabel>
+              <Select
+                native={true}
                 value={this.state[`lang_${i}`]["speaking"]}
                 onChange={this.handleChange(`lang_${i}`, "speaking")}
-                validators={["mustHaveSpeakingScore"]}
-                errorMessages={[this.state.requiredErrorText_t]}
               >
-                <option value="">{this.state.noneText_t}</option>
+                <option value=""></option>
                 {options.map(option => {
                   return <option value={option.value}>{option.text}</option>;
                 })}
-              </SelectValidator>
+              </Select>
             </FormControl>
           </Hidden>
           <Hidden smDown>
@@ -283,19 +281,17 @@ export default class Languages extends React.Component {
 
           <Hidden mdUp>
             <FormControl fullWidth>
-              <SelectValidator
-                label={this.state.readingWritingProficiencyLabelText_t}
+              <InputLabel>{this.state.readingWritingProficiencyLabelText_t}</InputLabel>
+              <Select
                 native
                 value={this.state[`lang_${i}`]["writing"]}
                 onChange={this.handleChange(`lang_${i}`, "writing")}
-                validators={["mustHaveWritingScore"]}
-                errorMessages={[this.state.requiredErrorText_t]}
               >
-                <option value="">{this.state.noneText_t}</option>
+                <option value=""></option>
                 {options.map(option => {
                   return <option value={option.value}>{option.text}</option>;
                 })}
-              </SelectValidator>
+              </Select>
             </FormControl>
           </Hidden>
         </Grid>

@@ -2,6 +2,7 @@
 const pry = require("pryjs");
 const jwt = require("jsonwebtoken");
 const socketIo = require("socket.io");
+const Sequelize = require("sequelize");
 //require models
 const Advocate = require("./models/Advocate");
 const User = require("./models/User");
@@ -22,12 +23,14 @@ const translator = new Translate({
   projectId: projectId
 });
 
+const Op = Sequelize.Op;
+
 // SOCKET.IO
 const io = socketIo(8080, {
   handlePreflightRequest: function(req, res) {
     let headers = {
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
-      "Access-Control-Allow-Origin": "http://10.185.7.87:3000",
+      "Access-Control-Allow-Origin": "http://192.168.1.187:3000",
       "Access-Control-Allow-Credentials": true
     };
     res.writeHead(200, headers);
@@ -70,18 +73,44 @@ io.on("connection", async socket => {
           where: { account_id: accountID },
           attributes: { exclude: "account_id", include: "id" }
         });
-        console.log("HERE:", payload.id, accountBios[0].id);
         let activeBio = accountBios.find(bio => {
           return bio.id === payload.id;
         });
-        console.log(activeBio);
         let eduEntries = await EducationEntry.findAll({
           where: { bio_id: activeBio.id }
         });
         let workEntries = await WorkEntry.findAll({
           where: { bio_id: activeBio.id }
         });
-        await socket.emit("bioInfoRecieved", {
+        await socket.emit("bioInfoReceived", {
+          bioInfo: {
+            bioStuff: activeBio,
+            workEntries: workEntries,
+            eduEntries: eduEntries
+          }
+        });
+      }
+    });
+
+    socket.on("requestUserBioInfo", async payload => {
+      if (payload.bio_id) {
+        let accountBios = await Bio.findAll({
+          where: { account_id: payload.user_id },
+          attributes: { exclude: "account_id", include: "id" }
+        });
+        let activeBio = accountBios.find(bio => {
+          return bio.id === payload.bio_id;
+        });
+        let eduEntries = await EducationEntry.findAll({
+          where: { bio_id: activeBio.id }
+        });
+        let workEntries = await WorkEntry.findAll({
+          where: { bio_id: activeBio.id }
+        });
+        console.log(activeBio)
+        console.log(eduEntries)
+        console.log(workEntries)
+        await socket.emit("userBioInfoReceived", {
           bioInfo: {
             bioStuff: activeBio,
             workEntries: workEntries,
@@ -97,11 +126,9 @@ io.on("connection", async socket => {
           where: { account_id: accountID },
           attributes: { exclude: "account_id", include: "id" }
         });
-        console.log("HERE:", payload.id, accountBios[0].id);
         let activeBio = accountBios.find(bio => {
           return bio.id === payload.id;
         });
-        console.log(activeBio);
         let eduEntries = await EducationEntry.findAll({
           where: { bio_id: activeBio.id }
         });
@@ -127,17 +154,15 @@ io.on("connection", async socket => {
           where: { account_id: accountID },
           attributes: { exclude: "account_id", include: "id" }
         });
-        console.log("HERE:", payload.id, accountBios[0].id);
         let activeBio = accountBios.find(bio => {
           return bio.id === payload.id;
         });
-        console.log(activeBio);
         let eduEntries = await EducationEntry.findAll({
           where: { bio_id: activeBio.id }
         });
         let workEntries = await WorkEntry.findAll({
           where: { bio_id: activeBio.id }
-        });        
+        });
         await socket.emit("bioInfoRecieved", {
           bioInfo: {
             bioStuff: activeBio,
@@ -151,8 +176,8 @@ io.on("connection", async socket => {
       }
     });
 
-    socket.on("requestWorkEntryInfo", async (payload) => {
-      if (payload.bio_id){
+    socket.on("requestWorkEntryInfo", async payload => {
+      if (payload.bio_id) {
         let accountBios = await Bio.findAll({
           where: { account_id: accountID },
           attributes: { exclude: "account_id", include: "id" }
@@ -164,8 +189,8 @@ io.on("connection", async socket => {
           where: { bio_id: activeBio.id }
         });
         let activeEntry = entries.find(entry => {
-          return entry.id === payload.entry_id
-        })
+          return entry.id === payload.entry_id;
+        });
         let skills = await Skill.findAll({
           where: { work_entry_id: activeEntry.id }
         });
@@ -176,10 +201,10 @@ io.on("connection", async socket => {
           }
         });
       }
-    })
+    });
 
-    socket.on("requestSkillInfo", async (payload) => {
-      if (payload.bio_id){
+    socket.on("requestSkillInfo", async payload => {
+      if (payload.bio_id) {
         let accountBios = await Bio.findAll({
           where: { account_id: accountID },
           attributes: { exclude: "account_id", include: "id" }
@@ -190,25 +215,57 @@ io.on("connection", async socket => {
         let entries = await WorkEntry.findAll({
           where: { bio_id: activeBio.id }
         });
-        console.log(entries)
-        let skills = []
-        entries.forEach(async (entry)=>{
-          console.log(entry)
-            let entrySkills = await Skill.findAll({
-            where: { work_entry_id: entry.id }
-          });
-
-            skills.push(entrySkills.flat())
-            console.log(skills)
-            await socket.emit("skillInfoReceived", {
-          entryInfo: {
-            entries: entries,
-            skills: skills
+        entryIds = [];
+        entries.forEach(entry => {
+          entryIds.push(entry.id);
+        });
+        let entrySkills = await Skill.findAll({
+          where: {
+            work_entry_id: {
+              [Op.or]: entryIds
+            }
           }
         });
-        })
+        await socket.emit("skillInfoReceived", {
+          entryInfo: {
+            entries: entries,
+            skills: entrySkills
+          }
+        });
       }
-    })
+    });
+
+    socket.on("requestUserSkillInfo", async payload => {
+      if (payload.bio_id) {
+        let accountBios = await Bio.findAll({
+          where: { account_id: payload.user_id },
+          attributes: { exclude: "account_id", include: "id" }
+        });
+        let activeBio = accountBios.find(bio => {
+          return bio.id === payload.bio_id;
+        });
+        let entries = await WorkEntry.findAll({
+          where: { bio_id: activeBio.id }
+        });
+        entryIds = [];
+        entries.forEach(entry => {
+          entryIds.push(entry.id);
+        });
+        let entrySkills = await Skill.findAll({
+          where: {
+            work_entry_id: {
+              [Op.or]: entryIds
+            }
+          }
+        });
+        await socket.emit("userSkillInfoReceived", {
+          entryInfo: {
+            entries: entries,
+            skills: entrySkills
+          }
+        });
+      }
+    });
 
     socket.on("requestAccountInfo", async () => {
       if (foundAdvocate !== null) {
@@ -218,7 +275,7 @@ io.on("connection", async socket => {
         });
         let accountBios = await Bio.findAll({
           where: { account_id: accountID },
-          attributes: { exclude: "account_id" }
+          attributes: { exclude: "account_id", include: "id" }
         });
         let accountLangs = await Language.findAll({
           where: { account_id: accountID },
@@ -240,9 +297,13 @@ io.on("connection", async socket => {
       } else if (foundUser !== null && foundUser.has_account === "true") {
         let accountBios = await Bio.findAll({
           where: { account_id: accountID },
-          attributes: { exclude: "account_id" }
+          attributes: { exclude: "account_id", include: "id" }
         });
         let accountLangs = await Language.findAll({
+          where: { account_id: accountID },
+          attributes: { exclude: "account_id" }
+        });
+        let accountCerts = await Certification.findAll({
           where: { account_id: accountID },
           attributes: { exclude: "account_id" }
         });
@@ -256,6 +317,18 @@ io.on("connection", async socket => {
           }
         });
       } else {
+        let accountBios = await Bio.findAll({
+          where: { account_id: accountID },
+          attributes: { exclude: "account_id", include: "id" }
+        });
+        let accountLangs = await Language.findAll({
+          where: { account_id: accountID },
+          attributes: { exclude: "account_id" }
+        });
+        let accountCerts = await Certification.findAll({
+          where: { account_id: accountID },
+          attributes: { exclude: "account_id" }
+        });
         socket.emit("accountInfoReceived", {
           accountInfo: {
             accountStuff: secureUser,
@@ -266,6 +339,31 @@ io.on("connection", async socket => {
           }
         });
       }
+    });
+
+    socket.on("requestUserAccountInfo", async (payload) => {
+        let accountBios = await Bio.findAll({
+          where: { account_id: payload.user_id },
+          attributes: { exclude: "account_id", include: "id" }
+        });
+        let accountLangs = await Language.findAll({
+          where: { account_id: payload.user_id },
+          attributes: { exclude: "account_id" }
+        });
+        let accountCerts = await Certification.findAll({
+          where: { account_id: payload.user_id },
+          attributes: { exclude: "account_id" }
+        });
+        socket.emit("userAccountInfoReceived", {
+          accountInfo: {
+            accountStuff: secureUser,
+            accountUsers: null,
+            accountBios: accountBios,
+            accountLangs: accountLangs,
+            accountCerts: accountCerts
+          }
+        });
+      
     });
 
     socket.on("translateDashboard", async payload => {
@@ -421,6 +519,78 @@ io.on("connection", async socket => {
       }
     });
 
+    socket.on("userTranslateText", async payload => {
+      if (account_language !== "en") {
+        const options = {
+          to: account_language,
+          model: "nmt"
+        };
+        const response = {};
+        for (let keyText in payload) {
+          let results = await translator.translate(payload[keyText], options);
+          response[keyText] = results[0];
+        }
+        socket.emit("userTextTranslated", response);
+      } else {
+        socket.emit("userTextTranslated", payload);
+      }
+    });
+
+    
+
+    socket.on("translateFinalText", async ({ payload }) => {
+        // console.log(payload);
+        const options = {
+          to: "en",
+          model: "nmt"
+        };
+        const response = {};
+        for (let keyText in payload) {
+          console.log(keyText)
+          if (
+            keyText.includes("_score_") ||
+            keyText.includes("_date_") ||
+            keyText.includes("_contact_info_") ||
+            keyText.includes("_company_name_") ||
+            keyText.includes("_id_")
+          ) {
+            console.log("____________________________________________________INHERE______________________________________________________________________________________")
+            response[keyText] = payload[keyText];
+          } else {
+            let results = await translator.translate(payload[keyText], options);
+            response[keyText] = results[0];
+          }
+        }
+        socket.emit("finalTextTranslated", response);
+    });
+
+    socket.on("userTranslateFinalText", async ({ payload }) => {
+        // console.log(payload);
+        const options = {
+          to: "en",
+          model: "nmt"
+        };
+        const response = {};
+        for (let keyText in payload) {
+          console.log(keyText)
+          if (
+            keyText.includes("_score_") ||
+            keyText.includes("_date_") ||
+            keyText.includes("_contact_info_") ||
+            keyText.includes("_company_name_") ||
+            keyText.includes("_id_")
+          ) {
+            console.log("____________________________________________________INHERE______________________________________________________________________________________")
+            response[keyText] = payload[keyText];
+          } else {
+            let results = await translator.translate(payload[keyText], options);
+            response[keyText] = results[0];
+          }
+        }
+        socket.emit("userFinalTextTranslated", response);
+    });
+
+
     socket.on("createNewBio", async () => {
       let newBio = await Bio.build();
       newBio.account_id = accountID;
@@ -430,20 +600,46 @@ io.on("connection", async socket => {
       });
     });
 
-    socket.on("updateUser", async payload => {
+    socket.on("finishBio", async payload => {
       console.log(payload);
+      let bio = await Bio.findByPk(payload.bio_id);
+      console.log(bio);
+      bio.finished = true;
+      await bio.save();
+      socket.emit("bioFinished");
+    });
+
+    socket.on("updateUser", async payload => {
       if (foundAdvocate !== null) {
+        console.log(payload);
         for (let keyText in payload) {
           foundAdvocate[keyText] = await payload[keyText];
+          secureAdvocate[keyText] = await payload[keyText];
         }
         await foundAdvocate.save();
+        console.log(foundAdvocate);
       } else if (foundUser !== null) {
         for (let keyText in payload) {
           foundUser[keyText] = await payload[keyText];
+          secureUser[keyText] = await payload[keyText];
         }
         await foundUser.save();
       }
       socket.emit("userUpdated");
+    });
+
+    socket.on("setActiveBio", async payload => {
+      if (foundAdvocate !== null) {
+        console.log(payload);
+        foundAdvocate.active_bio_id = payload.id
+        secureAdvocate.active_bio_id = payload.id
+        await foundAdvocate.save();
+      } else if (foundUser !== null) {
+        foundUser.active_bio_id = payload.id
+        secureUser.active_bio_id = payload.id
+        await foundUser.save();
+      }
+      socket.emit("activeBioSet");
     });
 
     socket.on("addLanguages", async payload => {
@@ -492,7 +688,6 @@ io.on("connection", async socket => {
     });
 
     socket.on("createEduEntry", async payload => {
-      console.log(payload.bio_id);
       let newEduEntry = await EducationEntry.build();
       newEduEntry.bio_id = payload.bio_id;
       await newEduEntry.save();
@@ -503,7 +698,6 @@ io.on("connection", async socket => {
 
     socket.on("saveEduEntry", async payload => {
       let eduEntry = await EducationEntry.findByPk(payload.id);
-      console.log(eduEntry);
       eduEntry.school_name = payload.schoolName;
       eduEntry.start_date = payload.startDate;
       eduEntry.finish_date = payload.finishDate;
@@ -514,7 +708,6 @@ io.on("connection", async socket => {
     });
 
     socket.on("createWorkEntry", async payload => {
-      console.log(payload.bio_id);
       let newWorkEntry = await WorkEntry.build();
       newWorkEntry.bio_id = payload.bio_id;
       await newWorkEntry.save();
@@ -523,9 +716,8 @@ io.on("connection", async socket => {
       });
     });
 
-     socket.on("saveWorkEntry", async payload => {
+    socket.on("saveWorkEntry", async payload => {
       let workEntry = await WorkEntry.findByPk(payload.id);
-      console.log(workEntry);
       workEntry.company_name = payload.companyName;
       workEntry.start_date = payload.startDate;
       workEntry.finish_date = payload.finishDate;
@@ -534,6 +726,27 @@ io.on("connection", async socket => {
       workEntry.reference_contact_info = payload.reference;
       await workEntry.save();
       socket.emit("workEntrySaved");
+    });
+
+
+    socket.on("createResumeRequestee", async payload => {
+      console.log('in here')
+      let newUser = await User.build();
+      if (payload.firstName) {
+        newUser.first_name = payload.firstName
+      }
+      if (payload.lastName) {
+        newUser.last_name = payload.lastName
+      }
+      if (payload.selectedLanguage) {
+        newUser.language = payload.selectedLanguage
+      }
+      newUser.advocate_id = foundAdvocate.uuid
+      await newUser.save();
+      console.log('saved!')
+      socket.emit("resumeRequesteeCreated", {
+        createdRequestee: newUser
+      });
     });
   }
 
@@ -1002,39 +1215,3 @@ io.on("connection", async socket => {
     }
   });
 });
-
-// // The text to translate
-// const text =
-//   "I prepared a long-term production forecasting application to deliver reliable information for business cycle.";
-// // The target language
-// const target = "sw";
-
-// const options = {
-//   to: target,
-//   model: "nmt"
-// };
-
-// // Translates some text into Russian
-// translator
-//   .translate(text, options)
-//   .then(results => {
-//     console.log(results);
-//     const translation = results[0];
-//     console.log(results[1].data.translations[0].detectedSourceLanguage);
-//     const sourceLanguage =
-//       results[1].data.translations[0].detectedSourceLanguage;
-//     console.log(`Text: ${text}`);
-//     console.log(`Translation: ${translation}`);
-//     console.log(`Source Language: ${sourceLanguage}`);
-
-//     translator.translate(translation, sourceLanguage).then(langData => {
-//       const original = langData[0];
-//       const secondLanguage =
-//         langData[1].data.translations[0].detectedSourceLanguage;
-//       console.log(`Returned Text: ${original}`);
-//       console.log(`Second Language: ${secondLanguage}`);
-//     });
-//   })
-//   .catch(err => {
-//     console.error("ERROR:", err);
-//   });

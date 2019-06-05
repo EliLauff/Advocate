@@ -5,12 +5,19 @@ import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
 import Paper from "@material-ui/core/Paper";
+import TextField from "@material-ui/core/TextField";
 import KeyboardArrowRightIcon from "@material-ui/icons/KeyboardArrowRight";
+import Hidden from "@material-ui/core/Hidden";
+import Select from "@material-ui/core/Select";
+import InputLabel from "@material-ui/core/InputLabel";
+import FormControl from "@material-ui/core/FormControl";
+import MenuItem from "@material-ui/core/MenuItem";
 import history from "../history";
+import { CopyToClipboard } from "react-copy-to-clipboard";
 
 const socketIDs = [];
 
-export default class ResumeIntro extends React.Component {
+export default class UserLink extends React.Component {
   state = {
     visible: false,
     headerText_t: "",
@@ -27,31 +34,23 @@ export default class ResumeIntro extends React.Component {
           headerText_t: response.headerText,
           descriptorText_t: response.descriptorText,
           buttonText_t: response.buttonText,
+          linkText_t: response.linkText,
+          userLink: `http://192.168.1.187:3000/userSetup?token=${localStorage.getItem(
+            "userLink"
+          )}`,
+          linkButtontext_t: response.linkButtonText,
           visible: true
         });
       })
     );
-    socketIDs.push(
-      await SocketHandler.registerSocketListener("bioCreated", response => {
-        localStorage.setItem("active_bio", response.createdBio.id);
-        SocketHandler.emit("updateUser", {
-          active_bio_id: response.createdBio.id
-        });
-      })
-    );
-    socketIDs.push(
-      await SocketHandler.registerSocketListener("userUpdated", () => {
-        setTimeout(() => {
-          history.push("/contactInfo");
-        }, 500);
-      })
-    );
+
     await SocketHandler.emit("translateText", {
-      headerText:
-        "Welcome to Advocate.  This is a resume builder designed for non-native english speakers.",
+      headerText: "User Account Created!",
       descriptorText:
-        "The resume builder will ask you a series of questions.  Answer them as clearly and as simply as possible.",
-      buttonText: "Continue"
+        "The link on this page will allow the new user to access their account.  Copy, paste and send it in whatever manner you desire.",
+      buttonText: "Back to home",
+      linkText: "Secure User Link: ",
+      linkButtonText: "Copy link to clipboard"
     });
 
     await SocketHandler.emit("requestAccountInfo");
@@ -63,57 +62,20 @@ export default class ResumeIntro extends React.Component {
     }
   }
 
+  handleChange = name => event => {
+    this.setState({ [name]: event.target.value });
+  };
+
   handleSubmit = e => {
     this.setState({ visible: false });
-    SocketHandler.emit("createNewBio");
+    setTimeout(() => {
+      history.push("/");
+    });
   };
 
   renderItems = () => {
     if (this.props.accountInfo) {
-      if (
-        this.props.accountInfo.accountStuff.account_type === "advocate" ||
-        this.props.accountInfo.accountStuff.has_account === true
-      ) {
-        return (
-          <Grid container spacing={3}>
-            <Grid item xs={12} />
-            {/* <Grid item xs={12} /> */}
-            <Grid item xs={false} md={3} />
-            <Grid item xs={12} md={6} style={{ textAlign: "left" }}>
-              <Paper>
-                <Grid container>
-                  <Grid item xs={1} />
-                  <Grid
-                    item
-                    xs={10}
-                    style={{ marginTop: "10px", marginBottom: "10px", textAlign: "center" }}
-                  >
-                    <Typography variant={"body2"}>
-                      {this.state.descriptorText_t}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={1} />
-                  <Grid item xs={12}>
-                    <Button
-                      variant="contained"
-                      fullWidth
-                      style={{
-                        fontStyle: "light",
-                        height: "100%"
-                      }}
-                      onClick={this.handleSubmit}
-                    >
-                      {this.state.buttonText_t}
-                      <KeyboardArrowRightIcon />
-                    </Button>
-                  </Grid>
-                </Grid>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={3} />
-          </Grid>
-        );
-      } else {
+      if (this.props.accountInfo.accountStuff.account_type === "advocate") {
         return (
           <Grid container spacing={3}>
             <Grid item xs={12} /> <Grid item xs={1} md={2} />
@@ -137,11 +99,38 @@ export default class ResumeIntro extends React.Component {
                   <Grid
                     item
                     xs={10}
-                    style={{ marginTop: "10px", marginBottom: "10px", textAlign: "center" }}
+                    style={{ marginTop: "30px", marginBottom: "10px" }}
                   >
                     <Typography variant={"body2"}>
                       {this.state.descriptorText_t}
                     </Typography>
+                  </Grid>
+                  <Grid item xs={1} />
+                  <Grid item xs={1} />
+                  <Grid
+                    item
+                    xs={10}
+                    style={{ marginTop: "10px", marginBottom: "20px" }}
+                  >
+                    <Typography variant={"body2"}>
+                      {this.state.linkText_t}
+                    </Typography>
+                    <Typography variant={"body1"} noWrap>
+                      {this.state.userLink}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={1} />
+                  <Grid item xs={1} />
+                  <Grid
+                    item
+                    xs={10}
+                    style={{ marginTop: "10px", marginBottom: "50px" }}
+                  >
+                    <CopyToClipboard text={this.state.userLink}>
+                      <Button variant="contained">
+                        {this.state.linkButtontext_t}
+                      </Button>
+                    </CopyToClipboard>
                   </Grid>
                   <Grid item xs={1} />
                   <Grid item xs={12}>

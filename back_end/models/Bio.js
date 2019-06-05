@@ -15,6 +15,11 @@ Bio.init(
     description: {
       type: Sequelize.STRING,
       allowNull: true
+    },
+    finished: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
     }
   },
   {

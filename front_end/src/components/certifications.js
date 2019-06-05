@@ -71,7 +71,7 @@ export default class Certifications extends React.Component {
         "eduEntryCreated",
         async response => {
           localStorage.setItem("eduEntry_id", response.newEduEntry.id);
-          await SocketHandler.emit("requestBioInfo", {
+          await SocketHandler.emit("requestBioInfoEdu", {
             id: parseInt(localStorage.getItem("active_bio"))
           });
         }

@@ -32,6 +32,9 @@ import EduQuestion from "../components/eduQuestion";
 import Certifications from "../components/certifications";
 import Languages from "../components/languages";
 import ShowResume from "../components/showResume";
+import NewUser from "../components/newUser";
+import UserLink from "../components/userLink";
+import ShowUser from "../components/showUser";
 import { MuiPickersUtilsProvider } from "@material-ui/pickers";
 import DateFnsUtils from "@date-io/date-fns";
 
@@ -97,6 +100,14 @@ export class Dashboard extends React.Component {
         }
       )
     );
+    socketIDs.push(
+      await SocketHandler.registerSocketListener("activeBioSet", () => {
+        setTimeout(() => {
+          history.push("/showResume");
+          this.props.forceMainBoxRender()
+        }, 500);
+      })
+    );
 
     await SocketHandler.emit("requestAccountInfo");
     await SocketHandler.emit("requestBioInfo", {
@@ -138,6 +149,60 @@ export class Dashboard extends React.Component {
 
   handleResumesExpand = () => {
     this.setState({ resumesOpen: !this.state.resumesOpen });
+  };
+
+  setActiveBio = id => {
+    SocketHandler.emit("setActiveBio", {
+      id: id
+    });
+  };
+
+  renderUsers = () => {
+    let boxes = [];
+    for (let user of this.state.accountInfo.accountUsers) {
+      if (user.first_name && user.last_name){
+        boxes.push(
+          <ListItem
+            button
+            style={{ paddingLeft: "30px" }}
+            onClick={() => this.showUser(user.uuid)}
+          >
+            <ListItemText>
+              <Typography variant={"body1"}>
+                {`${user.first_name} ${user.last_name}`}
+              </Typography>
+            </ListItemText>
+          </ListItem>
+        );
+        }
+    }
+    console.log(boxes);
+    return boxes;
+  }
+
+  renderBios = () => {
+    let boxes = [];
+    for (let bio of this.state.accountInfo.accountBios) {
+      console.log(bio);
+      if (bio.finished) {
+        boxes.push(
+          <ListItem
+            button
+            style={{ paddingLeft: "30px" }}
+            onClick={() => this.setActiveBio(bio.id)}
+          >
+            <ListItemText>
+              <Typography variant={"body1"}>
+                {this.state.accountInfo.accountStuff.first_name} -{" "}
+                {bio.createdAt.split("-")[1]}/{bio.createdAt.split("-")[0]}
+              </Typography>
+            </ListItemText>
+          </ListItem>
+        );
+      }
+    }
+    console.log(boxes);
+    return boxes;
   };
 
   renderToolbar() {
@@ -189,7 +254,26 @@ export class Dashboard extends React.Component {
     }
   }
 
-  renderMenu() {
+  newResume = e => {
+    setTimeout(() => {
+      history.push("/newResume");
+    }, 500);
+  };
+
+  newUser = e => {
+    setTimeout(() => {
+      history.push("/newUser");
+    }, 500);
+  };
+
+  showUser = id => {
+    setTimeout(() => {
+      history.push(`/showUser?user=${id}`);
+          this.props.forceMainBoxRender()
+    }, 500);
+  }
+
+  renderMenu = () => {
     if (this.state.accountInfo) {
       if (this.state.accountInfo.accountStuff.account_type === "advocate") {
         return (
@@ -210,7 +294,11 @@ export class Dashboard extends React.Component {
                 <List>
                   <ListItem
                     button
-                    onClick={() => console.log("go home")}
+                    onClick={() =>
+                      setTimeout(() => {
+                        history.push("/");
+                      }, 500)
+                    }
                     alignItems={"flex-start"}
                   >
                     <ListItemText>
@@ -239,8 +327,12 @@ export class Dashboard extends React.Component {
                     unmountOnExit={true}
                   >
                     <List component="div" disablePadding>
-                      {}
-                      <ListItem button style={{ paddingLeft: "30px" }}>
+                      {this.renderUsers()}
+                      <ListItem
+                        button
+                        style={{ paddingLeft: "30px" }}
+                        onClick={this.newUser}
+                      >
                         <ListItemText>
                           <Typography variant={"body1"}>
                             {this.state.inviteUserText_t}
@@ -271,8 +363,12 @@ export class Dashboard extends React.Component {
                     unmountOnExit={true}
                   >
                     <List component="div" disablePadding>
-                      {}
-                      <ListItem button style={{ paddingLeft: "30px" }}>
+                      {this.renderBios()}
+                      <ListItem
+                        button
+                        style={{ paddingLeft: "30px" }}
+                        onClick={this.newResume}
+                      >
                         <ListItemText>
                           <Typography variant={"body1"}>
                             {this.state.createResumeText_t}
@@ -325,7 +421,11 @@ export class Dashboard extends React.Component {
                 <List>
                   <ListItem
                     button
-                    onClick={() => console.log("go home")}
+                    onClick={() =>
+                      setTimeout(() => {
+                        history.push("/");
+                      }, 500)
+                    }
                     alignItems={"flex-start"}
                   >
                     <ListItemText>
@@ -354,8 +454,12 @@ export class Dashboard extends React.Component {
                     unmountOnExit={true}
                   >
                     <List component="div" disablePadding>
-                      {}
-                      <ListItem button style={{ paddingLeft: "30px" }}>
+                      {this.renderBios()}
+                      <ListItem
+                        button
+                        style={{ paddingLeft: "30px" }}
+                        onClick={this.newResume}
+                      >
                         <ListItemText>
                           <Typography variant={"body1"}>
                             {this.state.createResumeText_t}
@@ -388,7 +492,7 @@ export class Dashboard extends React.Component {
         );
       }
     }
-  }
+  };
 
   render() {
     return (
@@ -464,12 +568,38 @@ export class Dashboard extends React.Component {
                     render={() => (
                       <Languages accountInfo={this.state.accountInfo} />
                     )}
-                  />                  
+                  />
                   <Route
                     path="/showResume"
                     render={() => (
-                      <ShowResume accountInfo={this.state.accountInfo} 
-                      bioInfo={this.state.bioInfo}/>
+                      <ShowResume
+                        accountInfo={this.state.accountInfo}
+                        bioInfo={this.state.bioInfo}
+                      />
+                    )}
+                  />
+                  <Route
+                    path="/newUser"
+                    render={() => (
+                      <NewUser
+                        accountInfo={this.state.accountInfo}
+                        bioInfo={this.state.bioInfo}
+                      />
+                    )}
+                  />                  
+                  <Route
+                    path="/userLink"
+                    render={() => (
+                      <UserLink
+                        accountInfo={this.state.accountInfo}
+                        bioInfo={this.state.bioInfo}
+                      />
+                    )}
+                  />
+                  <Route
+                    path="/showUser"
+                    render={(props) => (
+                      <ShowUser props={props}/>
                     )}
                   />
                   <Route

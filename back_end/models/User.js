@@ -43,7 +43,7 @@ User.init(
     },
     email: {
       type: Sequelize.STRING,
-      allowNull: false,
+      allowNull: true,
       validate: {
         isEmail: true
       },
@@ -54,6 +54,10 @@ User.init(
     },
     phone_number: {
       type: Sequelize.STRING,
+      allowNull: true
+    },
+    active_bio_id: {
+      type: Sequelize.INTEGER,
       allowNull: true
     },
     password_digest: {

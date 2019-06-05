@@ -11,7 +11,7 @@ import format from "date-fns/format";
 
 const socketIDs = [];
 
-export default class ShowResume extends React.Component {
+export default class ShowUser extends React.Component {
   state = {
     visible: false,
     headerText_t: "",
@@ -28,40 +28,44 @@ export default class ShowResume extends React.Component {
   };
 
   async componentDidMount() {
+
     socketIDs.push(
       await SocketHandler.registerSocketListener(
         "accountInfoReceived",
         async response => {
-          console.log(response);
+            let user_id = this.props.props.location.search.split("?user=")[1]
+            console.log(response)
+          let foundUser = response.accountInfo.accountUsers.find((user)=>{
+              return user.uuid === user_id
+          })
+          console.log("FOUND USER: ", foundUser)
           this.setState({
-            firstNameText: response.accountInfo.accountStuff.first_name,
-            lastNameText: response.accountInfo.accountStuff.last_name,
-            phoneNumber: response.accountInfo.accountStuff.phone_number,
-            emailText: response.accountInfo.accountStuff.email,
-            languages: response.accountInfo.accountLangs,
-            certifications: response.accountInfo.accountCerts,
-            active_bio_id: response.accountInfo.accountStuff.active_bio_id
+            firstNameText: foundUser.first_name,
+            lastNameText: foundUser.last_name,
+            phoneNumber: foundUser.phone_number,
+            emailText: foundUser.email,
+            active_bio_id: foundUser.active_bio_id,
+            user_id: foundUser.uuid
           });
 
-          await SocketHandler.emit("requestBioInfo", {
-            id: response.accountInfo.accountStuff.active_bio_id
+          await SocketHandler.emit("requestUserAccountInfo", {
+              user_id: foundUser.uuid,
           });
         }
       )
     );
-
     socketIDs.push(
       await SocketHandler.registerSocketListener(
-        "bioInfoReceived",
+        "userAccountInfoReceived",
         async response => {
-          console.log(this.state);
-          console.log(response);
+            console.log(response)
           this.setState({
-            workEntries: response.bioInfo.workEntries,
-            eduEntries: response.bioInfo.eduEntries
+            languages: response.accountInfo.accountLangs,
+            certifications: response.accountInfo.accountCerts,
           });
 
-          await SocketHandler.emit("requestSkillInfo", {
+          await SocketHandler.emit("requestUserBioInfo", {
+              user_id: this.state.user_id,
             bio_id: this.state.active_bio_id
           });
         }
@@ -70,7 +74,26 @@ export default class ShowResume extends React.Component {
 
     socketIDs.push(
       await SocketHandler.registerSocketListener(
-        "skillInfoReceived",
+        "userBioInfoReceived",
+        async response => {
+          console.log(this.state);
+          console.log(response);
+          this.setState({
+            workEntries: response.bioInfo.workEntries,
+            eduEntries: response.bioInfo.eduEntries
+          });
+
+          await SocketHandler.emit("requestUserSkillInfo", {
+              user_id: this.state.user_id,
+            bio_id: this.state.active_bio_id
+          });
+        }
+      )
+    );
+
+    socketIDs.push(
+      await SocketHandler.registerSocketListener(
+        "userSkillInfoReceived",
         async response => {
           console.log(this.state);
           console.log(response);
@@ -78,8 +101,8 @@ export default class ShowResume extends React.Component {
             skills: response.entryInfo.skills
           });
 
-          await SocketHandler.emit("translateText", {
-            headerText: "This is your professional bio written in English.",
+          await SocketHandler.emit("userTranslateText", {
+            headerText: "This is your user's professional bio written in English.",
             buttonText: "Return to home"
           });
         }
@@ -88,7 +111,7 @@ export default class ShowResume extends React.Component {
 
     socketIDs.push(
       await SocketHandler.registerSocketListener(
-        "textTranslated",
+        "userTextTranslated",
         async response => {
           console.log(response);
           this.setState({
@@ -151,8 +174,7 @@ export default class ShowResume extends React.Component {
               z++;
             }
           }
-
-          await SocketHandler.emit("translateFinalText", {
+          await SocketHandler.emit("userTranslateFinalText", {
             payload
           });
         }
@@ -161,9 +183,8 @@ export default class ShowResume extends React.Component {
 
     socketIDs.push(
       await SocketHandler.registerSocketListener(
-        "finalTextTranslated",
+        "userFinalTextTranslated",
         async response => {
-          console.log(response);
           this.setState({
             ...this.state,
             payload: response,
@@ -173,7 +194,12 @@ export default class ShowResume extends React.Component {
       )
     );
     console.log("here");
-    await SocketHandler.emit("requestAccountInfo");
+
+    await SocketHandler.emit("requestAccountInfo")
+
+    await SocketHandler.emit("requestUserAccountInfo", {
+        user_id: this.props.props.location.search.split("?user=")[1]
+    });
   }
 
   componentWillUnmount() {

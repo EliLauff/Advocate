@@ -50,6 +50,15 @@ export default class EduEntry extends React.Component {
       })
     );
     socketIDs.push(
+      await SocketHandler.registerSocketListener("bioInfoReceived", response => {
+        console.log(response);
+        this.setState({
+          ...this.state,
+          bioInfo: response.bioInfo
+        });
+      })
+    );
+    socketIDs.push(
       await SocketHandler.registerSocketListener("textTranslated", response => {
         console.log(response);
         this.setState({
@@ -75,23 +84,23 @@ export default class EduEntry extends React.Component {
           otherDegreeText_t: response.otherDegreeText,
           noneText_t: response.noneText,
           selectText_t: response.selectText,
-          schoolName: this.props.bioInfo.eduEntries.find(
+          schoolName: this.state.bioInfo.eduEntries.find(
             entry => entry.id === parseInt(localStorage.getItem("eduEntry_id"))
           ).school_name,
           startDate:
-            this.props.bioInfo.eduEntries.find(
+            this.state.bioInfo.eduEntries.find(
               entry =>
                 entry.id === parseInt(localStorage.getItem("eduEntry_id"))
             ).start_date || new Date(),
           finishDate:
-            this.props.bioInfo.eduEntries.find(
+            this.state.bioInfo.eduEntries.find(
               entry =>
                 entry.id === parseInt(localStorage.getItem("eduEntry_id"))
             ).finish_date || new Date(),
-          degreeType: this.props.bioInfo.eduEntries.find(
+          degreeType: this.state.bioInfo.eduEntries.find(
             entry => entry.id === parseInt(localStorage.getItem("eduEntry_id"))
           ).degree_type,
-          degreeMajor: this.props.bioInfo.eduEntries.find(
+          degreeMajor: this.state.bioInfo.eduEntries.find(
             entry => entry.id === parseInt(localStorage.getItem("eduEntry_id"))
           ).degree_major,
           visible: true,
@@ -221,19 +230,17 @@ export default class EduEntry extends React.Component {
 
         <Hidden mdUp>
           <FormControl style={{ minWidth: "240px" }} fullWidth>
-            <SelectValidator
+              <InputLabel>{this.state.selectText_t}</InputLabel>
+            <Select
               native
-              label={this.state.selectText_t}
               value={this.state.degreeType}
               onChange={this.handleChange("degreeType")}
-              validators={["required"]}
-              errorMessages={[this.state.requiredErrorText_t]}
             >
-              <option value="">{this.state.noneText_t}</option>
+              <option value=""></option>
               {options.map(option => {
                 return <option value={option.value}>{option.text}</option>;
               })}
-            </SelectValidator>
+            </Select>
           </FormControl>
         </Hidden>
       </div>

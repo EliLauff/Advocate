@@ -57,6 +57,19 @@ class _MainContainer extends React.Component {
                 <LoginForm forceMainBoxRender={this.forceMainBoxRender} />
               )}
             />
+            <Route
+              path="/userSetup"
+              render={props => {
+                let token = props.location.search.split("?token=")[1];
+                if (token) {
+                  localStorage.setItem("token", token);
+                  SocketHandler.disconnect();
+                  SocketHandler.connect(localStorage.getItem("token"));
+                  this.forceMainBoxRender();
+                }
+                return null;
+              }}
+            />
             <Route path="" render={() => <WelcomeBanner />} />
           </Switch>
         </Router>

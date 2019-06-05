@@ -41,6 +41,10 @@ Advocate.init(
       type: Sequelize.STRING,
       allowNull: false
     },
+    active_bio_id: {
+      type: Sequelize.INTEGER,
+      allowNull: true
+    },
     email: {
       type: Sequelize.STRING,
       allowNull: false,

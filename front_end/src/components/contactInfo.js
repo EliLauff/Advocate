@@ -24,10 +24,10 @@ const socketIDs = [];
 export default class ContactInfo extends React.Component {
   state = {
     visible: false,
-    firstName: this.props.accountInfo.accountStuff.first_name,
-    lastName: this.props.accountInfo.accountStuff.last_name,
-    phone: this.props.accountInfo.accountStuff.phone_number,
-    email: this.props.accountInfo.accountStuff.email,
+    firstName: this.props.accountInfo.accountStuff.first_name || "",
+    lastName: this.props.accountInfo.accountStuff.last_name || "",
+    phone: this.props.accountInfo.accountStuff.phone_number || "",
+    email: this.props.accountInfo.accountStuff.email || "",
     headerText_t: "",
     firstNameLabelText_t: "",
     lastNameLabelText_t: "",

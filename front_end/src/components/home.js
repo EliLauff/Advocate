@@ -67,6 +67,13 @@ export default class Home extends React.Component {
     }, 500);
   };
 
+  newUser = e => {
+    this.setState({ visible: false });
+    setTimeout(() => {
+      history.push("/newUser");
+    }, 500);
+  };
+
   renderItems = () => {
     if (this.props.accountInfo) {
       if (this.props.accountInfo.accountStuff.account_type === "advocate") {
@@ -141,7 +148,7 @@ export default class Home extends React.Component {
                         fontStyle: "light",
                         height: "100%"
                       }}
-                      onClick={() => console.log("invite user")}
+                      onClick={this.newUser}
                     >
                       {this.state.a_inviteButtonText_t}
                       <AddIcon />

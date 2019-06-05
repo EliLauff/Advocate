@@ -96,11 +96,6 @@ class _LoginForm extends React.Component {
           this.setState({ visible: false });
           console.log(response.advocateInfo);
           await localStorage.setItem("token", response.advocateInfo.token);
-          await localStorage.setItem(
-            "account_type",
-            response.advocateInfo.account_type
-          );
-          await localStorage.setItem("uuid", response.advocateInfo.uuid);
           await SocketHandler.disconnect();
           await SocketHandler.connect(localStorage.getItem("token"));
           setTimeout(() => {
