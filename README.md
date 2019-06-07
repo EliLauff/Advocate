@@ -14,13 +14,13 @@ Both basic users and advocate users are able to create a professional bio for th
 ### Responsiveness
 Advocate is designed to be fully responsive regardless of user screen size.  This is out of consideration that users that receive an invite link will likely receive the link over text message.
 
-![resp_1](./assets/resp_1.jpg)
+![resp_1](./assets/resp_1.jpg =250x)
 
-![resp_2](./assets/resp_2.jpg)
+![resp_2](./assets/resp_2.jpg =250x)
 
-![resp_3](./assets/resp_3.jpg)
+![resp_3](./assets/resp_3.jpg =250x)
 
-![resp_4](./assets/resp_4.jpg)
+![resp_4](./assets/resp_4.jpg =250x)
 
 ### Demo
 
