@@ -1,4 +1,3 @@
-// npm packages across socket and express
 const pry = require("pryjs");
 const jwt = require("jsonwebtoken");
 const socketIo = require("socket.io");
