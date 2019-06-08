@@ -11,6 +11,10 @@ Advocate is intended to be as simple to use as possible, with each page typicall
 
 Both basic users and advocate users are able to create a professional bio for themselves and view the result.  Advocate users are able to invite others to create a professional bio.  The link they generate will bring the new user into the professional bio building process.  Results are then shown on the advocate user's dashboard.  
 
+### Demo
+
+[Link](https://youtu.be/1EEimlSyFPY)
+
 ### Responsiveness
 Advocate is designed to be fully responsive regardless of user screen size.  This is out of consideration that users that receive an invite link will likely receive the link over text message.
 
@@ -21,8 +25,4 @@ Advocate is designed to be fully responsive regardless of user screen size.  Thi
 <img src="./assets/resp_3.jpg" alt="responsive 3" width="375" align="middle"/>
 <img src="./assets/resp_4.jpg" alt="responsive 4" width="375" align="middle"/>
 </div>
-
-
-### Demo
-[Link](https://youtu.be/1EEimlSyFPY)
 
