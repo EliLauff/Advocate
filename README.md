@@ -13,7 +13,7 @@ Both basic users and advocate users are able to create a professional bio for th
 
 ### Demo
 
-[Link](https://youtu.be/1EEimlSyFPY)
+[YouTube Link](https://youtu.be/1EEimlSyFPY)
 
 ### Responsiveness
 Advocate is designed to be fully responsive regardless of user screen size.  This is out of consideration that users that receive an invite link will likely receive the link over text message.
