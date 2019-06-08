@@ -20,11 +20,9 @@ Advocate is designed to be fully responsive regardless of user screen size.  Thi
 
 <div>
 <img src="./assets/resp_1.jpg" alt="responsive 1" width="375" align="middle"/>
-<br/>
 <img src="./assets/resp_2.jpg" alt="responsive 2" width="375" align="middle"/>
 <br/>
 <img src="./assets/resp_3.jpg" alt="responsive 3" width="375" align="middle"/>
-<br/>
 <img src="./assets/resp_4.jpg" alt="responsive 4" width="375" align="middle"/>
 </div>
 
