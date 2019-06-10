@@ -1,6 +1,6 @@
 const Sequelize = require("sequelize");
 
-const sqlDB = new Sequelize("advocate_db", null, null, {
+const sqlDB = new Sequelize("advocate_db", 'postgres', null, {
   host: "localhost",
   dialect: "postgres"
 });

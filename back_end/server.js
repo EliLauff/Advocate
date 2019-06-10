@@ -1,6 +1,15 @@
 const pry = require("pryjs");
+
+const express = require("express");
+
+const app = require("express")();
+const server = require("http").Server(app);
+const io = require("socket.io")(server);
+// const socketIo = require("socket.io")
+
+server.listen(80);
+
 const jwt = require("jsonwebtoken");
-const socketIo = require("socket.io");
 const Sequelize = require("sequelize");
 //require models
 const Advocate = require("./models/Advocate");
@@ -25,17 +34,17 @@ const translator = new Translate({
 const Op = Sequelize.Op;
 
 // SOCKET.IO
-const io = socketIo(8080, {
-  handlePreflightRequest: function(req, res) {
-    let headers = {
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
-      "Access-Control-Allow-Origin": "http://192.168.1.187:3000",
-      "Access-Control-Allow-Credentials": true
-    };
-    res.writeHead(200, headers);
-    res.end();
-  }
-});
+// const io = socketIo(8080, {
+//   handlePreflightRequest: function(req, res) {
+//     let headers = {
+//       "Access-Control-Allow-Headers": "Content-Type, Authorization",
+//       "Access-Control-Allow-Origin": "http://192.168.1.187:3000",
+//       "Access-Control-Allow-Credentials": true
+//     };
+//     res.writeHead(200, headers);
+//     res.end();
+//   }
+// });
 
 io.on("connection", async socket => {
   if (socket.handshake.headers.authorization !== "Bearer null") {
@@ -106,9 +115,9 @@ io.on("connection", async socket => {
         let workEntries = await WorkEntry.findAll({
           where: { bio_id: activeBio.id }
         });
-        console.log(activeBio)
-        console.log(eduEntries)
-        console.log(workEntries)
+        console.log(activeBio);
+        console.log(eduEntries);
+        console.log(workEntries);
         await socket.emit("userBioInfoReceived", {
           bioInfo: {
             bioStuff: activeBio,
@@ -340,29 +349,28 @@ io.on("connection", async socket => {
       }
     });
 
-    socket.on("requestUserAccountInfo", async (payload) => {
-        let accountBios = await Bio.findAll({
-          where: { account_id: payload.user_id },
-          attributes: { exclude: "account_id", include: "id" }
-        });
-        let accountLangs = await Language.findAll({
-          where: { account_id: payload.user_id },
-          attributes: { exclude: "account_id" }
-        });
-        let accountCerts = await Certification.findAll({
-          where: { account_id: payload.user_id },
-          attributes: { exclude: "account_id" }
-        });
-        socket.emit("userAccountInfoReceived", {
-          accountInfo: {
-            accountStuff: secureUser,
-            accountUsers: null,
-            accountBios: accountBios,
-            accountLangs: accountLangs,
-            accountCerts: accountCerts
-          }
-        });
-      
+    socket.on("requestUserAccountInfo", async payload => {
+      let accountBios = await Bio.findAll({
+        where: { account_id: payload.user_id },
+        attributes: { exclude: "account_id", include: "id" }
+      });
+      let accountLangs = await Language.findAll({
+        where: { account_id: payload.user_id },
+        attributes: { exclude: "account_id" }
+      });
+      let accountCerts = await Certification.findAll({
+        where: { account_id: payload.user_id },
+        attributes: { exclude: "account_id" }
+      });
+      socket.emit("userAccountInfoReceived", {
+        accountInfo: {
+          accountStuff: secureUser,
+          accountUsers: null,
+          accountBios: accountBios,
+          accountLangs: accountLangs,
+          accountCerts: accountCerts
+        }
+      });
     });
 
     socket.on("translateDashboard", async payload => {
@@ -535,60 +543,61 @@ io.on("connection", async socket => {
       }
     });
 
-    
-
     socket.on("translateFinalText", async ({ payload }) => {
-        // console.log(payload);
-        const options = {
-          to: "en",
-          model: "nmt"
-        };
-        const response = {};
-        for (let keyText in payload) {
-          console.log(keyText)
-          if (
-            keyText.includes("_score_") ||
-            keyText.includes("_date_") ||
-            keyText.includes("_contact_info_") ||
-            keyText.includes("_company_name_") ||
-            keyText.includes("_id_")
-          ) {
-            console.log("____________________________________________________INHERE______________________________________________________________________________________")
-            response[keyText] = payload[keyText];
-          } else {
-            let results = await translator.translate(payload[keyText], options);
-            response[keyText] = results[0];
-          }
+      // console.log(payload);
+      const options = {
+        to: "en",
+        model: "nmt"
+      };
+      const response = {};
+      for (let keyText in payload) {
+        console.log(keyText);
+        if (
+          keyText.includes("_score_") ||
+          keyText.includes("_date_") ||
+          keyText.includes("_contact_info_") ||
+          keyText.includes("_company_name_") ||
+          keyText.includes("_id_")
+        ) {
+          console.log(
+            "____________________________________________________INHERE______________________________________________________________________________________"
+          );
+          response[keyText] = payload[keyText];
+        } else {
+          let results = await translator.translate(payload[keyText], options);
+          response[keyText] = results[0];
         }
-        socket.emit("finalTextTranslated", response);
+      }
+      socket.emit("finalTextTranslated", response);
     });
 
     socket.on("userTranslateFinalText", async ({ payload }) => {
-        // console.log(payload);
-        const options = {
-          to: "en",
-          model: "nmt"
-        };
-        const response = {};
-        for (let keyText in payload) {
-          console.log(keyText)
-          if (
-            keyText.includes("_score_") ||
-            keyText.includes("_date_") ||
-            keyText.includes("_contact_info_") ||
-            keyText.includes("_company_name_") ||
-            keyText.includes("_id_")
-          ) {
-            console.log("____________________________________________________INHERE______________________________________________________________________________________")
-            response[keyText] = payload[keyText];
-          } else {
-            let results = await translator.translate(payload[keyText], options);
-            response[keyText] = results[0];
-          }
+      // console.log(payload);
+      const options = {
+        to: "en",
+        model: "nmt"
+      };
+      const response = {};
+      for (let keyText in payload) {
+        console.log(keyText);
+        if (
+          keyText.includes("_score_") ||
+          keyText.includes("_date_") ||
+          keyText.includes("_contact_info_") ||
+          keyText.includes("_company_name_") ||
+          keyText.includes("_id_")
+        ) {
+          console.log(
+            "____________________________________________________INHERE______________________________________________________________________________________"
+          );
+          response[keyText] = payload[keyText];
+        } else {
+          let results = await translator.translate(payload[keyText], options);
+          response[keyText] = results[0];
         }
-        socket.emit("userFinalTextTranslated", response);
+      }
+      socket.emit("userFinalTextTranslated", response);
     });
-
 
     socket.on("createNewBio", async () => {
       let newBio = await Bio.build();
@@ -630,12 +639,12 @@ io.on("connection", async socket => {
     socket.on("setActiveBio", async payload => {
       if (foundAdvocate !== null) {
         console.log(payload);
-        foundAdvocate.active_bio_id = payload.id
-        secureAdvocate.active_bio_id = payload.id
+        foundAdvocate.active_bio_id = payload.id;
+        secureAdvocate.active_bio_id = payload.id;
         await foundAdvocate.save();
       } else if (foundUser !== null) {
-        foundUser.active_bio_id = payload.id
-        secureUser.active_bio_id = payload.id
+        foundUser.active_bio_id = payload.id;
+        secureUser.active_bio_id = payload.id;
         await foundUser.save();
       }
       socket.emit("activeBioSet");
@@ -727,22 +736,21 @@ io.on("connection", async socket => {
       socket.emit("workEntrySaved");
     });
 
-
     socket.on("createResumeRequestee", async payload => {
-      console.log('in here')
+      console.log("in here");
       let newUser = await User.build();
       if (payload.firstName) {
-        newUser.first_name = payload.firstName
+        newUser.first_name = payload.firstName;
       }
       if (payload.lastName) {
-        newUser.last_name = payload.lastName
+        newUser.last_name = payload.lastName;
       }
       if (payload.selectedLanguage) {
-        newUser.language = payload.selectedLanguage
+        newUser.language = payload.selectedLanguage;
       }
-      newUser.advocate_id = foundAdvocate.uuid
+      newUser.advocate_id = foundAdvocate.uuid;
       await newUser.save();
-      console.log('saved!')
+      console.log("saved!");
       socket.emit("resumeRequesteeCreated", {
         createdRequestee: newUser
       });
@@ -1214,3 +1222,5 @@ io.on("connection", async socket => {
     }
   });
 });
+
+app.use("/", express.static("public"));
