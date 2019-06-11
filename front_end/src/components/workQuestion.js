@@ -59,9 +59,9 @@ export default class WorkQuestion extends React.Component {
     );
 
     await SocketHandler.emit("requestAccountInfo");
-    await SocketHandler.emit("requestBioInfo", {
-      id: parseInt(localStorage.getItem("active_bio"))
-    });
+    // await SocketHandler.emit("requestBioInfo", {
+    //   id: parseInt(localStorage.getItem("active_bio"))
+    // });
     await SocketHandler.emit("translateText", {
       descriptorText:
         "Do you want to place more work experience on your resume?",

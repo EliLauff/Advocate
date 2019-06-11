@@ -70,9 +70,9 @@ export default class EduQuestion extends React.Component {
       })
     );
     await SocketHandler.emit("requestAccountInfo");
-    await SocketHandler.emit("requestBioInfo", {
-      id: parseInt(localStorage.getItem("active_bio"))
-    });
+    // await SocketHandler.emit("requestBioInfo", {
+    //   id: parseInt(localStorage.getItem("active_bio"))
+    // });
     await SocketHandler.emit("translateText", {
       descriptorText:
         "Is there additional educational experience that you would like to record on your resume?",
