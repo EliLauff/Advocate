@@ -5,6 +5,7 @@ const express = require("express");
 const app = require("express")();
 const server = require("http").Server(app);
 const io = require("socket.io")(server);
+const path = require("path");
 // const socketIo = require("socket.io")
 
 server.listen(80);
@@ -1223,4 +1224,5 @@ io.on("connection", async socket => {
   });
 });
 
-app.use("/", express.static("public"));
+app.use("/static", express.static("public/static"));
+app.use("/*", (req, res) => res.sendFile(path.resolve("./public/index.html")));

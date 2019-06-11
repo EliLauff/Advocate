@@ -7,7 +7,7 @@ export default class SocketHandler {
 
   static connect = token => {
     console.log("WS connecting...");
-    this.io = socketIO("http://localhost/", {
+    this.io = socketIO("http://34.73.209.106/", {
       transportOptions: {
         polling: {
           //send extra headers to socket-io

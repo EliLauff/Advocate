@@ -35,7 +35,7 @@ export default class UserLink extends React.Component {
           descriptorText_t: response.descriptorText,
           buttonText_t: response.buttonText,
           linkText_t: response.linkText,
-          userLink: `http://localhost/userSetup?token=${localStorage.getItem(
+          userLink: `http://34.73.209.106/userSetup?token=${localStorage.getItem(
             "userLink"
           )}`,
           linkButtontext_t: response.linkButtonText,
