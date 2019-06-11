@@ -50,11 +50,39 @@ export default class EduEntry extends React.Component {
       })
     );
     socketIDs.push(
-      await SocketHandler.registerSocketListener("bioInfoReceived", response => {
+      await SocketHandler.registerSocketListener("bioInfoReceived", async response => {
         console.log(response);
         this.setState({
           ...this.state,
           bioInfo: response.bioInfo
+        });
+        await SocketHandler.emit("translateText", {
+          headerText:
+            "Please use the form below to describe your educational background.",
+          schoolNameDescriptorText:
+            "What is the name of the school that you attended?",
+          schoolNameLabelText: "School name: ",
+          startDateDescriptorText:
+            "On what date did you start attending this school?",
+          startDateLabelText: "Start date: ",
+          finishDateDescriptorText:
+            "On what date did you finish attending this school?",
+          finishDateLabelText: "Finish date: ",
+          degreeTypeDescriptorText: "What type of degree did you earn?",
+          degreeTypeLabelText: "Degree type: ",
+          degreeMajorDescriptorText:
+            "What was your area of study or educational focus? (Please leave empty if not applicable)",
+          degreeMajorLabelText: "Area of study: ",
+          submitButtonText: "Continue",
+          requiredErrorText: "This field is required",
+          highSchoolText: "High School Diploma",
+          associateDegreeText: "Associate Degree",
+          bachelorDegreeText: "Bachelor's Degree",
+          masterDegreeText: "Master's Degree",
+          doctoralDegreeText: "Doctoral Degree",
+          otherDegreeText: "Other",
+          noneText: "None",
+          selectText: "Select an option..."
         });
       })
     );
@@ -112,34 +140,7 @@ export default class EduEntry extends React.Component {
     await SocketHandler.emit("requestBioInfo", {
       id: parseInt(localStorage.getItem("active_bio"))
     });
-    await SocketHandler.emit("translateText", {
-      headerText:
-        "Please use the form below to describe your educational background.",
-      schoolNameDescriptorText:
-        "What is the name of the school that you attended?",
-      schoolNameLabelText: "School name: ",
-      startDateDescriptorText:
-        "On what date did you start attending this school?",
-      startDateLabelText: "Start date: ",
-      finishDateDescriptorText:
-        "On what date did you finish attending this school?",
-      finishDateLabelText: "Finish date: ",
-      degreeTypeDescriptorText: "What type of degree did you earn?",
-      degreeTypeLabelText: "Degree type: ",
-      degreeMajorDescriptorText:
-        "What was your area of study or educational focus? (Please leave empty if not applicable)",
-      degreeMajorLabelText: "Area of study: ",
-      submitButtonText: "Continue",
-      requiredErrorText: "This field is required",
-      highSchoolText: "High School Diploma",
-      associateDegreeText: "Associate Degree",
-      bachelorDegreeText: "Bachelor's Degree",
-      masterDegreeText: "Master's Degree",
-      doctoralDegreeText: "Doctoral Degree",
-      otherDegreeText: "Other",
-      noneText: "None",
-      selectText: "Select an option..."
-    });
+    
   }
 
   componentWillUnmount() {

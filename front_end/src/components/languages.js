@@ -114,7 +114,7 @@ export default class Languages extends React.Component {
       headerText:
         "Please use the form below to record any languages you understand.",
       languagesDescriptorText:
-        "Please list any and each language you understand (minimum of one). Please place only one language on each line and press the button below to add more lines as needed.  Please rank your speaking proficiency and your reading/writing proficiency on a scale of 1 to 5 (1 means beginner, 5 means fluent)",
+        "Please list any and each language you understand, including your primary language. (minimum of one). Please place only one language on each line and press the button below to add more lines as needed.  Please rank your speaking proficiency and your reading/writing proficiency on a scale of 1 to 5 (1 means beginner, 5 means fluent)",
       languagesLabelText: "Language: ",
       langButtonText: "Add another language",
       speakingProficiencyLabelText: "Speaking: ",
@@ -245,13 +245,15 @@ export default class Languages extends React.Component {
 
           <Hidden mdUp>
             <FormControl fullWidth>
-              <InputLabel>{this.state.speakingProficiencyLabelText_t}</InputLabel>
+              <InputLabel>
+                {this.state.speakingProficiencyLabelText_t}
+              </InputLabel>
               <Select
                 native={true}
                 value={this.state[`lang_${i}`]["speaking"]}
                 onChange={this.handleChange(`lang_${i}`, "speaking")}
               >
-                <option value=""></option>
+                <option value="" />
                 {options.map(option => {
                   return <option value={option.value}>{option.text}</option>;
                 })}
@@ -281,13 +283,15 @@ export default class Languages extends React.Component {
 
           <Hidden mdUp>
             <FormControl fullWidth>
-              <InputLabel>{this.state.readingWritingProficiencyLabelText_t}</InputLabel>
+              <InputLabel>
+                {this.state.readingWritingProficiencyLabelText_t}
+              </InputLabel>
               <Select
                 native
                 value={this.state[`lang_${i}`]["writing"]}
                 onChange={this.handleChange(`lang_${i}`, "writing")}
               >
-                <option value=""></option>
+                <option value="" />
                 {options.map(option => {
                   return <option value={option.value}>{option.text}</option>;
                 })}
