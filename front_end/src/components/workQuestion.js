@@ -32,7 +32,7 @@ export default class WorkQuestion extends React.Component {
       })
     );
 
-    await socketIDs.push(
+    socketIDs.push(
       await SocketHandler.registerSocketListener(
         "workEntryCreated",
         async response => {
@@ -43,14 +43,14 @@ export default class WorkQuestion extends React.Component {
         }
       )
     );
-    await socketIDs.push(
+    socketIDs.push(
       await SocketHandler.registerSocketListener("renderWorkPage", () => {
         setTimeout(() => {
           history.push("/workEntry");
         }, 500);
       })
     );
-    await socketIDs.push(
+    socketIDs.push(
       await SocketHandler.registerSocketListener("bioFinished", () => {
         setTimeout(() => {
           history.push("/showResume");
@@ -101,8 +101,7 @@ export default class WorkQuestion extends React.Component {
     return (
       <Fade in={this.state.visible} timeout={500} unmountOnExit={true}>
         <Grid container spacing={3}>
-          <Grid item xs={6}>
-          </Grid>
+          <Grid item xs={6} />
           <Grid item xs={6} style={{ textAlign: "right" }} />
           <Grid item xs={12} />
           <Grid item xs={1} md={2} />

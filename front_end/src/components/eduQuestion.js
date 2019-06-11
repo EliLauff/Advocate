@@ -16,7 +16,7 @@ export default class EduQuestion extends React.Component {
   };
 
   async componentDidMount() {
-    await socketIDs.push(
+    socketIDs.push(
       await SocketHandler.registerSocketListener(
         "eduEntryCreated",
         async response => {
@@ -27,7 +27,7 @@ export default class EduQuestion extends React.Component {
         }
       )
     );
-    await socketIDs.push(
+    socketIDs.push(
       await SocketHandler.registerSocketListener("renderEduPage", () => {
         setTimeout(() => {
           history.push("/eduEntry");
@@ -35,7 +35,7 @@ export default class EduQuestion extends React.Component {
       })
     );
 
-    await socketIDs.push(
+    socketIDs.push(
       await SocketHandler.registerSocketListener(
         "workEntryCreated",
         async response => {
@@ -46,7 +46,7 @@ export default class EduQuestion extends React.Component {
         }
       )
     );
-    await socketIDs.push(
+    socketIDs.push(
       await SocketHandler.registerSocketListener("renderWorkPage", () => {
         setTimeout(() => {
           history.push("/workEntry");
@@ -109,8 +109,7 @@ export default class EduQuestion extends React.Component {
     return (
       <Fade in={this.state.visible} timeout={500} unmountOnExit={true}>
         <Grid container spacing={3}>
-          <Grid item xs={6}>
-          </Grid>
+          <Grid item xs={6} />
           <Grid item xs={6} style={{ textAlign: "right" }} />
           <Grid item xs={12} />
           <Grid item xs={1} md={2} />

@@ -55,7 +55,7 @@ export default class Certifications extends React.Component {
         });
       })
     );
-    await socketIDs.push(
+    socketIDs.push(
       await SocketHandler.registerSocketListener(
         "certsAdded",
         async response => {
@@ -66,7 +66,7 @@ export default class Certifications extends React.Component {
         }
       )
     );
-    await socketIDs.push(
+    socketIDs.push(
       await SocketHandler.registerSocketListener(
         "eduEntryCreated",
         async response => {
@@ -77,7 +77,7 @@ export default class Certifications extends React.Component {
         }
       )
     );
-    await socketIDs.push(
+    socketIDs.push(
       await SocketHandler.registerSocketListener("renderEduPage", () => {
         setTimeout(() => {
           history.push("/eduEntry");
