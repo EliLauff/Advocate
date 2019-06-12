@@ -19,9 +19,9 @@ export default class EduQuestion extends React.Component {
     socketIDs.push(
       await SocketHandler.registerSocketListener(
         "eduEntryCreated",
-        async response => {
+        response => {
           localStorage.setItem("eduEntry_id", response.newEduEntry.id);
-          await SocketHandler.emit("requestBioInfoEdu", {
+          SocketHandler.emit("requestBioInfoEdu", {
             id: parseInt(localStorage.getItem("active_bio"))
           });
         }
@@ -29,6 +29,9 @@ export default class EduQuestion extends React.Component {
     );
     socketIDs.push(
       await SocketHandler.registerSocketListener("renderEduPage", () => {
+        for (let i = 0; i < socketIDs.length; i++) {
+          SocketHandler.unregisterSocketListener(socketIDs[i]);
+        }
         setTimeout(() => {
           history.push("/eduEntry");
         }, 500);
@@ -38,9 +41,9 @@ export default class EduQuestion extends React.Component {
     socketIDs.push(
       await SocketHandler.registerSocketListener(
         "workEntryCreated",
-        async response => {
+        response => {
           localStorage.setItem("workEntry_id", response.newWorkEntry.id);
-          await SocketHandler.emit("requestBioInfoWork", {
+          SocketHandler.emit("requestBioInfoWork", {
             id: parseInt(localStorage.getItem("active_bio"))
           });
         }
@@ -48,6 +51,9 @@ export default class EduQuestion extends React.Component {
     );
     socketIDs.push(
       await SocketHandler.registerSocketListener("renderWorkPage", () => {
+        for (let i = 0; i < socketIDs.length; i++) {
+          SocketHandler.unregisterSocketListener(socketIDs[i]);
+        }
         setTimeout(() => {
           history.push("/workEntry");
         }, 500);
@@ -108,7 +114,7 @@ export default class EduQuestion extends React.Component {
   render() {
     return (
       <Fade in={this.state.visible} timeout={500} unmountOnExit={true}>
-        <Grid container spacing={3}>
+        <Grid container spacing={3} >
           <Grid item xs={6} />
           <Grid item xs={6} style={{ textAlign: "right" }} />
           <Grid item xs={12} />

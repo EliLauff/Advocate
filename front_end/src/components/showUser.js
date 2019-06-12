@@ -28,12 +28,13 @@ export default class ShowUser extends React.Component {
   };
 
   async componentDidMount() {
-
+    const handle = this.props.match.params.id
+    console.log(handle)
     socketIDs.push(
       await SocketHandler.registerSocketListener(
         "accountInfoReceived",
-        async response => {
-            let user_id = this.props.props.location.search.split("?user=")[1]
+        response => {
+            let user_id = handle
             console.log(response)
           let foundUser = response.accountInfo.accountUsers.find((user)=>{
               return user.uuid === user_id
@@ -48,7 +49,7 @@ export default class ShowUser extends React.Component {
             user_id: foundUser.uuid
           });
 
-          await SocketHandler.emit("requestUserAccountInfo", {
+          SocketHandler.emit("requestUserAccountInfo", {
               user_id: foundUser.uuid,
           });
         }
@@ -57,14 +58,14 @@ export default class ShowUser extends React.Component {
     socketIDs.push(
       await SocketHandler.registerSocketListener(
         "userAccountInfoReceived",
-        async response => {
+        response => {
             console.log(response)
           this.setState({
             languages: response.accountInfo.accountLangs,
             certifications: response.accountInfo.accountCerts,
           });
 
-          await SocketHandler.emit("requestUserBioInfo", {
+          SocketHandler.emit("requestUserBioInfo", {
               user_id: this.state.user_id,
             bio_id: this.state.active_bio_id
           });
@@ -75,7 +76,7 @@ export default class ShowUser extends React.Component {
     socketIDs.push(
       await SocketHandler.registerSocketListener(
         "userBioInfoReceived",
-        async response => {
+        response => {
           console.log(this.state);
           console.log(response);
           this.setState({
@@ -83,7 +84,7 @@ export default class ShowUser extends React.Component {
             eduEntries: response.bioInfo.eduEntries
           });
 
-          await SocketHandler.emit("requestUserSkillInfo", {
+          SocketHandler.emit("requestUserSkillInfo", {
               user_id: this.state.user_id,
             bio_id: this.state.active_bio_id
           });
@@ -94,14 +95,14 @@ export default class ShowUser extends React.Component {
     socketIDs.push(
       await SocketHandler.registerSocketListener(
         "userSkillInfoReceived",
-        async response => {
+        response => {
           console.log(this.state);
           console.log(response);
           this.setState({
             skills: response.entryInfo.skills
           });
 
-          await SocketHandler.emit("userTranslateText", {
+          SocketHandler.emit("userTranslateText", {
             headerText: "This is your user's professional bio written in English.",
             buttonText: "Return to home"
           });
@@ -112,7 +113,7 @@ export default class ShowUser extends React.Component {
     socketIDs.push(
       await SocketHandler.registerSocketListener(
         "userTextTranslated",
-        async response => {
+        response => {
           console.log(response);
           this.setState({
             ...this.state,
@@ -174,7 +175,7 @@ export default class ShowUser extends React.Component {
               z++;
             }
           }
-          await SocketHandler.emit("userTranslateFinalText", {
+          SocketHandler.emit("userTranslateFinalText", {
             payload
           });
         }
@@ -184,7 +185,7 @@ export default class ShowUser extends React.Component {
     socketIDs.push(
       await SocketHandler.registerSocketListener(
         "userFinalTextTranslated",
-        async response => {
+        response => {
           this.setState({
             ...this.state,
             payload: response,
@@ -198,15 +199,18 @@ export default class ShowUser extends React.Component {
     await SocketHandler.emit("requestAccountInfo")
 
     await SocketHandler.emit("requestUserAccountInfo", {
-        user_id: this.props.props.location.search.split("?user=")[1]
+        user_id: this.props.location.search.split("?user=")[1]
     });
   }
 
   componentWillUnmount() {
+    console.log('UNMOUNTING')
     for (let i = 0; i < socketIDs.length; i++) {
       SocketHandler.unregisterSocketListener(socketIDs[i]);
     }
   }
+
+  
 
   goHome = () => {
     this.setState({ visible: false });
@@ -419,7 +423,7 @@ export default class ShowUser extends React.Component {
   render() {
     return (
       <Fade in={this.state.visible} timeout={500} unmountOnExit={true}>
-        <Grid container spacing={3}>
+        <Grid container spacing={3} >
           <Grid item xs={12} />
           <Grid item xs={1} md={2} />
           <Grid item xs={10} md={8} style={{ minHeight: "75px" }}>

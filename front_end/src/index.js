@@ -72,7 +72,7 @@ const theme = createMuiTheme({
 ReactDOM.render(
   <MuiThemeProvider theme={theme}>
     <Provider store={store}>
-      <App />
+      <App style={{maxWidth:"100%", overflowX:"hidden"}}/>
     </Provider>
   </MuiThemeProvider>,
   document.getElementById("root")

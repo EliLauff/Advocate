@@ -24,10 +24,10 @@ const socketIDs = [];
 export default class ContactInfo extends React.Component {
   state = {
     visible: false,
-    firstName: this.props.accountInfo.accountStuff.first_name || "",
-    lastName: this.props.accountInfo.accountStuff.last_name || "",
-    phone: this.props.accountInfo.accountStuff.phone_number || "",
-    email: this.props.accountInfo.accountStuff.email || "",
+    firstName: "",
+    lastName: "",
+    phone: "",
+    email: "",
     headerText_t: "",
     firstNameLabelText_t: "",
     lastNameLabelText_t: "",
@@ -63,21 +63,27 @@ export default class ContactInfo extends React.Component {
         }, 500);
       })
     );
+    socketIDs.push(
+      await SocketHandler.registerSocketListener("accountInfoReceived", (response)=>{
+        this.setState({...this.state, accountInfo:response.accountInfo,     firstName: response.accountInfo.accountStuff.first_name,
+        lastName: response.accountInfo.accountStuff.last_name,
+        phone: response.accountInfo.accountStuff.phone_number,
+        email: response.accountInfo.accountStuff.email, })
+        SocketHandler.emit("translateText", {
+          headerText: "Please use the form below to provide your contact info.",
+          firstNameLabelText: "First name: ",
+          lastNameLabelText: "Last name: ",
+          goBackText: "Go back",
+          emailLabelText: "E-mail address: ",
+          phoneLabelText: "Phone number (only digits): ",
+          buttonText: "continue",
+          requiredFieldText: "this field is required",
+          validEmailText: "this email is not valid"
+        });
+      })
+    )
     await SocketHandler.emit("requestAccountInfo");
-    await SocketHandler.emit("requestBioInfo", {
-      id: parseInt(localStorage.getItem("active_bio"))
-    });
-    await SocketHandler.emit("translateText", {
-      headerText: "Please use the form below to provide your contact info.",
-      firstNameLabelText: "First name: ",
-      lastNameLabelText: "Last name: ",
-      goBackText: "Go back",
-      emailLabelText: "E-mail address: ",
-      phoneLabelText: "Phone number: ",
-      buttonText: "continue",
-      requiredFieldText: "this field is required",
-      validEmailText: "this email is not valid"
-    });
+
   }
 
   componentWillUnmount() {
@@ -101,9 +107,9 @@ export default class ContactInfo extends React.Component {
   };
 
   renderItems = () => {
-    if (this.props.accountInfo) {
+    if (this.state.accountInfo) {
       return (
-        <Grid container spacing={3}>
+        <Grid container spacing={3} >
           <Grid item xs={12} /> <Grid item xs={1} md={2} />
           <Grid item xs={10} md={8} style={{ minHeight: "75px" }}>
             <div style={{ textAlign: "center" }}>

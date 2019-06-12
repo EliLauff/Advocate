@@ -268,7 +268,7 @@ export class Dashboard extends React.Component {
 
   showUser = id => {
     setTimeout(() => {
-      history.push(`/showUser?user=${id}`);
+      history.push(`/showUser/${id}`);
           this.props.forceMainBoxRender()
     }, 500);
   }
@@ -505,106 +505,61 @@ export class Dashboard extends React.Component {
               </AppBar>
               {this.renderMenu()}
             </div>
-            <Grid container spacing={3}>
+            <Grid container spacing={3} >
               <Grid item xs={12} />
               <Router history={history}>
                 <Switch>
                   <Route
                     path="/newResume"
-                    render={() => (
-                      <ResumeIntro accountInfo={this.state.accountInfo} />
-                    )}
+                    component={ResumeIntro}
                   />
                   <Route
                     path="/contactInfo"
-                    render={() => (
-                      <ContactInfo accountInfo={this.state.accountInfo} />
-                    )}
+                    component={ContactInfo}
                   />
                   <Route
                     path="/workEntry"
-                    render={() => (
-                      <WorkEntry
-                        accountInfo={this.state.accountInfo}
-                        bioInfo={this.state.bioInfo}
-                      />
-                    )}
+                    component={WorkEntry}
                   />
                   <Route
                     path="/workQuestion"
-                    render={() => (
-                      <WorkQuestion
-                        accountInfo={this.state.accountInfo}
-                        bioInfo={this.state.bioInfo}
-                      />
-                    )}
+                    component={WorkQuestion}
                   />
                   <Route
                     path="/eduEntry"
-                    render={() => (
-                      <EduEntry
-                        accountInfo={this.state.accountInfo}
-                        bioInfo={this.state.bioInfo}
-                      />
-                    )}
+                    component={EduEntry}
                   />
                   <Route
                     path="/eduQuestion"
-                    render={() => (
-                      <EduQuestion
-                        accountInfo={this.state.accountInfo}
-                        bioInfo={this.state.bioInfo}
-                      />
-                    )}
+                    component={EduQuestion}
                   />
                   <Route
                     path="/certifications"
-                    render={() => (
-                      <Certifications accountInfo={this.state.accountInfo} />
-                    )}
+                    component={Certifications}
                   />
                   <Route
                     path="/languages"
-                    render={() => (
-                      <Languages accountInfo={this.state.accountInfo} />
-                    )}
+                    component={Languages}
                   />
                   <Route
                     path="/showResume"
-                    render={() => (
-                      <ShowResume
-                        accountInfo={this.state.accountInfo}
-                        bioInfo={this.state.bioInfo}
-                      />
-                    )}
+                    component={ShowResume}
                   />
                   <Route
                     path="/newUser"
-                    render={() => (
-                      <NewUser
-                        accountInfo={this.state.accountInfo}
-                        bioInfo={this.state.bioInfo}
-                      />
-                    )}
+                    component={NewUser}
                   />                  
                   <Route
                     path="/userLink"
-                    render={() => (
-                      <UserLink
-                        accountInfo={this.state.accountInfo}
-                        bioInfo={this.state.bioInfo}
-                      />
-                    )}
+                    component={UserLink}
                   />
                   <Route
-                    path="/showUser"
-                    render={(props) => (
-                      <ShowUser props={props}/>
-                    )}
+                    path="/showUser/:id"
+                    render={props => <ShowUser key={props.match.params.id} {...props}/>}
                   />
                   <Route
                     path=""
-                    render={() => <Home accountInfo={this.state.accountInfo} />}
+                    component={Home}
                   />
                 </Switch>
               </Router>

@@ -149,7 +149,7 @@ class _LoginForm extends React.Component {
   render() {
     return (
       <Fade in={this.state.visible} timeout={500} unmountOnExit={true}>
-        <Grid container spacing={3}>
+        <Grid container spacing={3} >
           <Grid item xs={6}>
             <Button size="small" onClick={this.handleBack}>
               <KeyboardArrowLeftIcon />

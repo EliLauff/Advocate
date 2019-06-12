@@ -30,7 +30,6 @@ const socketIDs = [];
 export default class EduEntry extends React.Component {
   constructor(props) {
     super(props);
-    console.log(this.props);
     this.state = {
       visible: false,
       schoolName: "",
@@ -44,19 +43,23 @@ export default class EduEntry extends React.Component {
   async componentDidMount() {
     socketIDs.push(
       await SocketHandler.registerSocketListener("eduEntrySaved", () => {
+        for (let i = 0; i < socketIDs.length; i++) {
+          SocketHandler.unregisterSocketListener(socketIDs[i]);
+        }
         setTimeout(() => {
           history.push("/eduQuestion");
         }, 500);
       })
     );
     socketIDs.push(
-      await SocketHandler.registerSocketListener("bioInfoReceived", async response => {
+      await SocketHandler.registerSocketListener("bioInfoReceived", response => {
+        console.log(socketIDs)
         console.log(response);
         this.setState({
           ...this.state,
           bioInfo: response.bioInfo
         });
-        await SocketHandler.emit("translateText", {
+        SocketHandler.emit("translateText", {
           headerText:
             "Please use the form below to describe your educational background.",
           schoolNameDescriptorText:
@@ -251,7 +254,7 @@ export default class EduEntry extends React.Component {
   render() {
     return (
       <Fade in={this.state.visible} timeout={500} unmountOnExit={true}>
-        <Grid container>
+        <Grid container >
           <Grid container spacing={3}>
             <Grid item xs={12} /> <Grid item xs={1} md={2} />
             <Grid item xs={10} md={8} style={{ minHeight: "75px" }}>

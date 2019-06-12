@@ -31,31 +31,15 @@ export default class Languages extends React.Component {
 
     this.state = {
       visible: false,
-      numLangs:
-        this.props.accountInfo.accountLangs.length > 0
-          ? this.props.accountInfo.accountLangs.length
-          : 1,
       languages: [],
       lang_0: {
         name: "",
         speaking: "",
         writing: ""
-      }
+      },
+      checkVar: false
     };
-    if (this.props.accountInfo.accountLangs.length > 0) {
-      let n = 0;
-      while (n < this.state.numLangs) {
-        this.state = {
-          ...this.state,
-          [`lang_${n}`]: {
-            name: this.props.accountInfo.accountLangs[n].name,
-            speaking: this.props.accountInfo.accountLangs[n].speaking_score,
-            writing: this.props.accountInfo.accountLangs[n].writing_score
-          }
-        };
-        n++;
-      }
-    }
+
   }
 
   async componentDidMount() {
@@ -83,6 +67,7 @@ export default class Languages extends React.Component {
     socketIDs.push(
       await SocketHandler.registerSocketListener("textTranslated", response => {
         console.log(response);
+        console.log(this.state)
         this.setState({
           ...this.state,
           headerText_t: response.headerText,
@@ -109,21 +94,47 @@ export default class Languages extends React.Component {
       })
     );
 
+    socketIDs.push(
+      await SocketHandler.registerSocketListener("accountInfoReceived", (response)=>{
+        console.log(response)
+        this.setState({...this.state, accountInfo:response.accountInfo, numLangs:
+          response.accountInfo.accountLangs.length > 0
+            ? response.accountInfo.accountLangs.length
+            : 1})
+        if (response.accountInfo.accountLangs.length > 0) {
+              let n = 0;
+              while (n < this.state.numLangs) {
+                this.setState({
+                  ...this.state,
+                  [`lang_${n}`]: {
+                    name: response.accountInfo.accountLangs[n].name,
+                    speaking: response.accountInfo.accountLangs[n].speaking_score,
+                    writing: response.accountInfo.accountLangs[n].writing_score
+                  }
+                });
+                n++;
+              }
+            }
+        this.setState({...this.state, checkVar: true})
+        SocketHandler.emit("translateText", {
+          headerText:
+            "Please use the form below to record any languages you understand.",
+          languagesDescriptorText:
+            "Please list any and each language you understand, including your primary language. (minimum of one). Please place only one language on each line and press the button below to add more lines as needed.  Please rank your speaking proficiency and your reading/writing proficiency on a scale of 1 to 5 (1 means beginner, 5 means fluent)",
+          languagesLabelText: "Language: ",
+          langButtonText: "Add another language",
+          speakingProficiencyLabelText: "Speaking: ",
+          readingWritingProficiencyLabelText: "Writing: ",
+          submitButtonText: "Continue",
+          requiredErrorText: "This field is required",
+          minimumLanguageText: "One language is required",
+          noneText: "None"
+        });
+      })
+    )
+
     await SocketHandler.emit("requestAccountInfo");
-    await SocketHandler.emit("translateText", {
-      headerText:
-        "Please use the form below to record any languages you understand.",
-      languagesDescriptorText:
-        "Please list any and each language you understand, including your primary language. (minimum of one). Please place only one language on each line and press the button below to add more lines as needed.  Please rank your speaking proficiency and your reading/writing proficiency on a scale of 1 to 5 (1 means beginner, 5 means fluent)",
-      languagesLabelText: "Language: ",
-      langButtonText: "Add another language",
-      speakingProficiencyLabelText: "Speaking: ",
-      readingWritingProficiencyLabelText: "Writing: ",
-      submitButtonText: "Continue",
-      requiredErrorText: "This field is required",
-      minimumLanguageText: "One language is required",
-      noneText: "None"
-    });
+
   }
 
   componentWillUnmount() {
@@ -180,6 +191,7 @@ export default class Languages extends React.Component {
   };
 
   renderLangBoxes = () => {
+    if(this.state.checkVar){
     console.log(this.state);
     const options = [
       {
@@ -212,7 +224,7 @@ export default class Languages extends React.Component {
     for (let i = 0; i < this.state.numLangs; i++) {
       console.log("rendering box");
       boxes.push(
-        <Grid container>
+        <Grid container >
           <TextValidator
             label={this.state.languagesLabelText_t}
             value={this.state[`lang_${i}`]["name"]}
@@ -302,12 +314,13 @@ export default class Languages extends React.Component {
       );
     }
     return boxes;
+  }
   };
 
   render() {
     return (
       <Fade in={this.state.visible} timeout={500} unmountOnExit={true}>
-        <Grid container>
+        <Grid container >
           <Grid container spacing={3}>
             <Grid item xs={12} /> <Grid item xs={1} md={2} />
             <Grid item xs={10} md={8} style={{ minHeight: "75px" }}>

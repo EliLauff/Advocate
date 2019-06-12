@@ -280,7 +280,7 @@ class _WelcomeBanner extends React.Component {
   render() {
     return (
       <Fade in={this.state.allVisible} timeout={500} unmountOnExit={true}>
-        <Grid container spacing={3}>
+        <Grid container spacing={3} >
           <Grid item xs={6} />
           <Grid item xs={6} style={{ textAlign: "right" }}>
             <Button size="small" onClick={this.requestLogin}>

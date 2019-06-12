@@ -19,25 +19,11 @@ const socketIDs = [];
 export default class Certifications extends React.Component {
   constructor(props) {
     super(props);
-    console.log(this.props);
     this.state = {
       visible: false,
-      numCerts:
-        this.props.accountInfo.accountCerts.length > 0
-          ? this.props.accountInfo.accountCerts.length
-          : 1,
       certifications: []
     };
-    if (this.props.accountInfo.accountCerts.length > 0) {
-      let n = 0;
-      while (n < this.state.numCerts) {
-        this.state = {
-          ...this.state,
-          [`cert_${n}`]: this.props.accountInfo.accountCerts[n].description
-        };
-        n++;
-      }
-    }
+
   }
 
   async componentDidMount() {
@@ -58,9 +44,9 @@ export default class Certifications extends React.Component {
     socketIDs.push(
       await SocketHandler.registerSocketListener(
         "certsAdded",
-        async response => {
+        response => {
           console.log(response);
-          await SocketHandler.emit("createEduEntry", {
+          SocketHandler.emit("createEduEntry", {
             bio_id: parseInt(localStorage.getItem("active_bio"))
           });
         }
@@ -69,9 +55,9 @@ export default class Certifications extends React.Component {
     socketIDs.push(
       await SocketHandler.registerSocketListener(
         "eduEntryCreated",
-        async response => {
+        response => {
           localStorage.setItem("eduEntry_id", response.newEduEntry.id);
-          await SocketHandler.emit("requestBioInfoEdu", {
+          SocketHandler.emit("requestBioInfoEdu", {
             id: parseInt(localStorage.getItem("active_bio"))
           });
         }
@@ -84,16 +70,38 @@ export default class Certifications extends React.Component {
         }, 500);
       })
     );
+
+    socketIDs.push(
+      await SocketHandler.registerSocketListener("accountInfoReceived", (response)=>{
+        console.log(response)
+        this.setState({...this.state, accountInfo:response.accountInfo, numCerts:
+          response.accountInfo.accountCerts.length > 0
+            ? response.accountInfo.accountCerts.length
+            : 1})
+            if (response.accountInfo.accountCerts.length > 0) {
+              let n = 0;
+              while (n < this.state.numCerts) {
+                this.state = {
+                  ...this.state,
+                  [`cert_${n}`]: response.accountInfo.accountCerts[n].description
+                };
+                n++;
+              }
+            }
+        this.setState({...this.state, checkVar: true})
+        SocketHandler.emit("translateText", {
+          headerText:
+            "If applicable, please use the form below to record any certifications you have earned.",
+          certificationsDescriptorText:
+            "If applicable, please list any and each professional certification that you have earned. (For example: 'Forklift', 'HVAC', 'CDL', 'TWIC Card', etc.). Please place only one certification on each line and press the button below to add more lines as needed.",
+          certificationsLabelText: "Certification earned: ",
+          certButtonText: "Add another certification",
+          submitButtonText: "Continue"
+        });
+      })
+    )
     await SocketHandler.emit("requestAccountInfo");
-    await SocketHandler.emit("translateText", {
-      headerText:
-        "If applicable, please use the form below to record any certifications you have earned.",
-      certificationsDescriptorText:
-        "If applicable, please list any and each professional certification that you have earned. (For example: 'Forklift', 'HVAC', 'CDL', 'TWIC Card', etc.). Please place only one certification on each line and press the button below to add more lines as needed.",
-      certificationsLabelText: "Certification earned: ",
-      certButtonText: "Add another certification",
-      submitButtonText: "Continue"
-    });
+
   }
 
   componentWillUnmount() {
@@ -157,7 +165,7 @@ export default class Certifications extends React.Component {
   render() {
     return (
       <Fade in={this.state.visible} timeout={500} unmountOnExit={true}>
-        <Grid container>
+        <Grid container >
           <Grid container spacing={3}>
             <Grid item xs={12} /> <Grid item xs={1} md={2} />
             <Grid item xs={10} md={8} style={{ minHeight: "75px" }}>

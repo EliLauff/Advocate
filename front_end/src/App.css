@@ -1,6 +1,9 @@
 * {
   box-sizing: border-box;
+  max-width: 100%;
+  overflow-x: hidden;
 }
+
 
 /* For mobile phones: */
 [class*="col-"] {
@@ -116,6 +119,12 @@
 img {
   width: 100%;
   height: auto;
+}
+
+
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .App {

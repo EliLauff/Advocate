@@ -46,14 +46,18 @@ export default class ResumeIntro extends React.Component {
         }, 500);
       })
     );
-    await SocketHandler.emit("translateText", {
-      headerText:
-        "Welcome to Advocate.  This is a resume builder designed for non-native english speakers.",
-      descriptorText:
-        "The resume builder will ask you a series of questions.  Answer them as clearly and as simply as possible.",
-      buttonText: "Continue"
-    });
-
+    socketIDs.push(
+      await SocketHandler.registerSocketListener("accountInfoReceived", (response)=>{
+        this.setState({...this.state, accountInfo:response.accountInfo})
+        SocketHandler.emit("translateText", {
+          headerText:
+            "Welcome to Advocate.  This is a resume builder designed for non-native english speakers.",
+          descriptorText:
+            "The resume builder will ask you a series of questions.  Answer them as clearly and as simply as possible.",
+          buttonText: "Continue"
+        });
+      })
+    )
     await SocketHandler.emit("requestAccountInfo");
   }
 
@@ -69,13 +73,13 @@ export default class ResumeIntro extends React.Component {
   };
 
   renderItems = () => {
-    if (this.props.accountInfo) {
+    if (this.state.accountInfo) {
       if (
-        this.props.accountInfo.accountStuff.account_type === "advocate" ||
-        this.props.accountInfo.accountStuff.has_account === true
+        this.state.accountInfo.accountStuff.account_type === "advocate" ||
+        this.state.accountInfo.accountStuff.has_account === true
       ) {
         return (
-          <Grid container spacing={3}>
+          <Grid container spacing={3} >
             <Grid item xs={12} />
             {/* <Grid item xs={12} /> */}
             <Grid item xs={false} md={3} />
@@ -115,7 +119,7 @@ export default class ResumeIntro extends React.Component {
         );
       } else {
         return (
-          <Grid container spacing={3}>
+          <Grid container spacing={3} >
             <Grid item xs={12} /> <Grid item xs={1} md={2} />
             <Grid item xs={10} md={8} style={{ minHeight: "75px" }}>
               <div style={{ textAlign: "center" }}>
@@ -171,7 +175,7 @@ export default class ResumeIntro extends React.Component {
   render() {
     return (
       <Fade in={this.state.visible} timeout={500} unmountOnExit={true}>
-        <Grid container>{this.renderItems()}</Grid>
+        <Grid container >{this.renderItems()}</Grid>
       </Fade>
     );
   }

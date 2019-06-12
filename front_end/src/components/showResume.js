@@ -31,7 +31,7 @@ export default class ShowResume extends React.Component {
     socketIDs.push(
       await SocketHandler.registerSocketListener(
         "accountInfoReceived",
-        async response => {
+        response => {
           console.log(response);
           this.setState({
             firstNameText: response.accountInfo.accountStuff.first_name,
@@ -43,7 +43,7 @@ export default class ShowResume extends React.Component {
             active_bio_id: response.accountInfo.accountStuff.active_bio_id
           });
 
-          await SocketHandler.emit("requestBioInfo", {
+          SocketHandler.emit("requestBioInfo", {
             id: response.accountInfo.accountStuff.active_bio_id
           });
         }
@@ -53,7 +53,7 @@ export default class ShowResume extends React.Component {
     socketIDs.push(
       await SocketHandler.registerSocketListener(
         "bioInfoReceived",
-        async response => {
+        response => {
           console.log(this.state);
           console.log(response);
           this.setState({
@@ -61,7 +61,7 @@ export default class ShowResume extends React.Component {
             eduEntries: response.bioInfo.eduEntries
           });
 
-          await SocketHandler.emit("requestSkillInfo", {
+          SocketHandler.emit("requestSkillInfo", {
             bio_id: this.state.active_bio_id
           });
         }
@@ -71,14 +71,14 @@ export default class ShowResume extends React.Component {
     socketIDs.push(
       await SocketHandler.registerSocketListener(
         "skillInfoReceived",
-        async response => {
+        response => {
           console.log(this.state);
           console.log(response);
           this.setState({
             skills: response.entryInfo.skills
           });
 
-          await SocketHandler.emit("translateText", {
+          SocketHandler.emit("translateText", {
             headerText: "This is your professional bio written in English.",
             buttonText: "Return to home"
           });
@@ -89,7 +89,7 @@ export default class ShowResume extends React.Component {
     socketIDs.push(
       await SocketHandler.registerSocketListener(
         "textTranslated",
-        async response => {
+        response => {
           console.log(response);
           this.setState({
             ...this.state,
@@ -152,7 +152,7 @@ export default class ShowResume extends React.Component {
             }
           }
 
-          await SocketHandler.emit("translateFinalText", {
+          SocketHandler.emit("translateFinalText", {
             payload
           });
         }
@@ -162,7 +162,7 @@ export default class ShowResume extends React.Component {
     socketIDs.push(
       await SocketHandler.registerSocketListener(
         "finalTextTranslated",
-        async response => {
+        response => {
           console.log(response);
           this.setState({
             ...this.state,
@@ -393,7 +393,7 @@ export default class ShowResume extends React.Component {
   render() {
     return (
       <Fade in={this.state.visible} timeout={500} unmountOnExit={true}>
-        <Grid container spacing={3}>
+        <Grid container spacing={3} >
           <Grid item xs={12} />
           <Grid item xs={1} md={2} />
           <Grid item xs={10} md={8} style={{ minHeight: "75px" }}>

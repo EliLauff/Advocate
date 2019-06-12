@@ -44,14 +44,24 @@ export default class UserLink extends React.Component {
       })
     );
 
-    await SocketHandler.emit("translateText", {
-      headerText: "User Account Created!",
-      descriptorText:
-        "The link on this page will allow the new user to access their account.  Copy, paste and send it in whatever manner you desire.",
-      buttonText: "Back to home",
-      linkText: "Secure User Link: ",
-      linkButtonText: "Copy link to clipboard"
-    });
+    socketIDs.push(
+      await SocketHandler.registerSocketListener(
+        "accountInfoReceived",
+        response => {
+          this.setState({...this.state, accountInfo: response.accountInfo})
+          SocketHandler.emit("translateText", {
+            headerText: "User Account Created!",
+            descriptorText:
+              "The link on this page will allow the new user to access their account.  Copy, paste and send it in whatever manner you desire.",
+            buttonText: "Back to home",
+            linkText: "Secure User Link: ",
+            linkButtonText: "Copy link to clipboard"
+          });
+        }
+      )
+    );
+
+    
 
     await SocketHandler.emit("requestAccountInfo");
   }
@@ -74,8 +84,8 @@ export default class UserLink extends React.Component {
   };
 
   renderItems = () => {
-    if (this.props.accountInfo) {
-      if (this.props.accountInfo.accountStuff.account_type === "advocate") {
+    if (this.state.accountInfo) {
+      if (this.state.accountInfo.accountStuff.account_type === "advocate") {
         return (
           <Grid container spacing={3}>
             <Grid item xs={12} /> <Grid item xs={1} md={2} />
@@ -160,7 +170,7 @@ export default class UserLink extends React.Component {
   render() {
     return (
       <Fade in={this.state.visible} timeout={500} unmountOnExit={true}>
-        <Grid container>{this.renderItems()}</Grid>
+        <Grid container >{this.renderItems()}</Grid>
       </Fade>
     );
   }

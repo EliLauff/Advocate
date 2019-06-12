@@ -39,7 +39,7 @@ const Op = Sequelize.Op;
 //   handlePreflightRequest: function(req, res) {
 //     let headers = {
 //       "Access-Control-Allow-Headers": "Content-Type, Authorization",
-//       "Access-Control-Allow-Origin": "http://192.168.1.187:3000",
+//       "Access-Control-Allow-Origin": "http://10.185.7.186:3000",
 //       "Access-Control-Allow-Credentials": true
 //     };
 //     res.writeHead(200, headers);
@@ -707,11 +707,11 @@ io.on("connection", async socket => {
 
     socket.on("saveEduEntry", async payload => {
       let eduEntry = await EducationEntry.findByPk(payload.id);
-      eduEntry.school_name = payload.schoolName;
+      eduEntry.school_name = payload.schoolName || "N/A";
       eduEntry.start_date = payload.startDate;
       eduEntry.finish_date = payload.finishDate;
-      eduEntry.degree_type = payload.degreeType;
-      eduEntry.degree_major = payload.degreeMajor;
+      eduEntry.degree_type = payload.degreeType || "N/A";
+      eduEntry.degree_major = payload.degreeMajor || "N/A";
       await eduEntry.save();
       socket.emit("eduEntrySaved");
     });
@@ -727,12 +727,12 @@ io.on("connection", async socket => {
 
     socket.on("saveWorkEntry", async payload => {
       let workEntry = await WorkEntry.findByPk(payload.id);
-      workEntry.company_name = payload.companyName;
+      workEntry.company_name = payload.companyName || "N/A";
       workEntry.start_date = payload.startDate;
       workEntry.finish_date = payload.finishDate;
-      workEntry.position_title = payload.positionTitle;
-      workEntry.work_description = payload.workDescription;
-      workEntry.reference_contact_info = payload.reference;
+      workEntry.position_title = payload.positionTitle || "N/A";
+      workEntry.work_description = payload.workDescription || "N/A";
+      workEntry.reference_contact_info = payload.reference || "N/A";
       await workEntry.save();
       socket.emit("workEntrySaved");
     });

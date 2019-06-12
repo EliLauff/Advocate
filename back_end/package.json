@@ -13,7 +13,7 @@
     "bcrypt": "^3.0.6",
     "express": "^4.16.4",
     "jsonwebtoken": "^8.5.1",
-    "nodemon": "^1.19.0",
+    "nodemon": "^1.19.1",
     "pg": "^7.11.0",
     "pg-hstore": "^2.3.2",
     "postgresql": "0.0.1",

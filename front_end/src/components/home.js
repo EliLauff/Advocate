@@ -39,19 +39,31 @@ export default class Home extends React.Component {
         });
       })
     );
-    await SocketHandler.emit("translateHome", {
-      a_descriptorText: "Welcome to your helper dashboard.",
-      a_inviteBodyText:
-        "As a helper, you can invite someone to create a resume in their own language and then review it for them. You may also use the menu to do this.",
-      a_inviteButtonText: "Invite a user",
-      a_resumeBodyText:
-        "You're able to create your own resumes here.  You may access them later using the menu at the left of the screen.",
-      a_resumeButtonText: "Create a resume",
-      u_descriptorText: "Welcome to your user dashboard.",
-      u_resumeBodyText:
-        "As a user, you can create an English resume by answering questions in your own language.  Click here to create a resume.",
-      u_resumeButtonText: "Create a resume"
-    });
+    
+
+    socketIDs.push(
+      await SocketHandler.registerSocketListener(
+        "accountInfoReceived",
+        response => {
+          this.setState({...this.state, accountInfo: response.accountInfo})
+          SocketHandler.emit("translateHome", {
+            a_descriptorText: "Welcome to your helper dashboard.",
+            a_inviteBodyText:
+              "As a helper, you can invite someone to create a resume in their own language and then review it for them. You may also use the menu to do this.",
+            a_inviteButtonText: "Invite a user",
+            a_resumeBodyText:
+              "You're able to create your own resumes here.  You may access them later using the menu at the left of the screen.",
+            a_resumeButtonText: "Create a resume",
+            u_descriptorText: "Welcome to your user dashboard.",
+            u_resumeBodyText:
+              "As a user, you can create an English resume by answering questions in your own language.  Click here to create a resume.",
+            u_resumeButtonText: "Create a resume"
+          });
+        }
+      )
+    );
+
+    await SocketHandler.emit("requestAccountInfo");
   }
 
   componentWillUnmount() {
@@ -75,10 +87,11 @@ export default class Home extends React.Component {
   };
 
   renderItems = () => {
-    if (this.props.accountInfo) {
-      if (this.props.accountInfo.accountStuff.account_type === "advocate") {
+    if (this.state.accountInfo) {
+      console.log(this.state)
+      if (this.state.accountInfo.accountStuff.account_type === "advocate") {
         return (
-          <Grid container spacing={3}>
+          <Grid container spacing={3} >
             <Grid item xs={12} />
             <Grid item xs={12} />
             <Grid item xs={1} md={2} />
@@ -160,7 +173,7 @@ export default class Home extends React.Component {
             <Grid item xs={false} md={2} />
           </Grid>
         );
-      } else {
+      } else if(this.state.accountInfo.accountStuff.account_type === "user" && this.state.accountInfo.accountStuff.has_account === true) {
         return (
           <Grid container spacing={3}>
             <Grid item xs={12} />
@@ -213,6 +226,8 @@ export default class Home extends React.Component {
             <Grid item xs={12} md={4} />
           </Grid>
         );
+      } else {
+        history.push("/newResume")
       }
     }
   };

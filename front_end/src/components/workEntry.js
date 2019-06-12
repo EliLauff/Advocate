@@ -42,7 +42,6 @@ export default class WorkEntry extends React.Component {
   async componentDidMount() {
     socketIDs.push(
       await SocketHandler.registerSocketListener("textTranslated", response => {
-        console.log(this.props)
         console.log(response);
         this.setState({
           ...this.state,
@@ -117,15 +116,18 @@ export default class WorkEntry extends React.Component {
     );
     socketIDs.push(
       await SocketHandler.registerSocketListener("workEntrySaved", () => {
+        for (let i = 0; i < socketIDs.length; i++) {
+          SocketHandler.unregisterSocketListener(socketIDs[i]);
+        }
         setTimeout(()=>{
           history.push('/workQuestion')
         },500)
       })
     );
     await SocketHandler.emit("requestAccountInfo");
-    await SocketHandler.emit("requestBioInfo", {
-      id: parseInt(localStorage.getItem("active_bio"))
-    });
+    // await SocketHandler.emit("requestBioInfo", {
+    //   id: parseInt(localStorage.getItem("active_bio"))
+    // });
     await SocketHandler.emit("requestWorkEntryInfo", {
       bio_id: parseInt(localStorage.getItem("active_bio")),
       entry_id: parseInt(localStorage.getItem("workEntry_id"))
@@ -221,7 +223,7 @@ export default class WorkEntry extends React.Component {
     console.log("rendering", this.state.numSkills);
     return (
       <Fade in={this.state.visible} timeout={500} unmountOnExit={true}>
-        <Grid container>
+        <Grid container >
           {" "}
           <Grid container spacing={3}>
             <Grid item xs={12} /> <Grid item xs={1} md={2} />

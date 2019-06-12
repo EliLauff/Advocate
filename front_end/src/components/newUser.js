@@ -55,17 +55,25 @@ export default class NewUser extends React.Component {
         }
       )
     );
-    await SocketHandler.emit("translateText", {
-      headerText:
-        "Please input accurate information for your resume requestee.",
-      descriptorText:
-        "On this page, you can input information for your new user so that they don't have to.  If you aren't certain, feel free to leave these fields blank.",
-      buttonText: "Submit",
-      firstNameLabelText: "First Name: ",
-      lastNameLabelText: "Last Name: ",
-      noneText: "None",
-      selectText: "Select a language..."
-    });
+    socketIDs.push(
+      await SocketHandler.registerSocketListener(
+        "accountInfoReceived",
+        response => {
+          this.setState({...this.state, accountInfo: response.accountInfo})
+          SocketHandler.emit("translateText", {
+            headerText:
+              "Please input accurate information for your resume requestee.",
+            descriptorText:
+              "On this page, you can input information for your new user so that they don't have to.  If you aren't certain, feel free to leave these fields blank.",
+            buttonText: "Submit",
+            firstNameLabelText: "First Name: ",
+            lastNameLabelText: "Last Name: ",
+            noneText: "None",
+            selectText: "Select a language..."
+          });
+        }
+      )
+    );
 
     await SocketHandler.emit("requestAccountInfo");
   }
@@ -233,10 +241,10 @@ export default class NewUser extends React.Component {
   };
 
   renderItems = () => {
-    if (this.props.accountInfo) {
-      if (this.props.accountInfo.accountStuff.account_type === "advocate") {
+    if (this.state.accountInfo) {
+      if (this.state.accountInfo.accountStuff.account_type === "advocate") {
         return (
-          <Grid container spacing={3}>
+          <Grid container spacing={3} >
             <Grid item xs={12} /> <Grid item xs={1} md={2} />
             <Grid item xs={10} md={8} style={{ minHeight: "75px" }}>
               <div style={{ textAlign: "center" }}>
@@ -337,7 +345,7 @@ export default class NewUser extends React.Component {
   render() {
     return (
       <Fade in={this.state.visible} timeout={500} unmountOnExit={true}>
-        <Grid container>{this.renderItems()}</Grid>
+        <Grid container >{this.renderItems()}</Grid>
       </Fade>
     );
   }

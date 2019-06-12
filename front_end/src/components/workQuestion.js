@@ -35,9 +35,9 @@ export default class WorkQuestion extends React.Component {
     socketIDs.push(
       await SocketHandler.registerSocketListener(
         "workEntryCreated",
-        async response => {
+        response => {
           localStorage.setItem("workEntry_id", response.newWorkEntry.id);
-          await SocketHandler.emit("requestBioInfoWork", {
+          SocketHandler.emit("requestBioInfoWork", {
             id: parseInt(localStorage.getItem("active_bio"))
           });
         }
@@ -100,7 +100,7 @@ export default class WorkQuestion extends React.Component {
   render() {
     return (
       <Fade in={this.state.visible} timeout={500} unmountOnExit={true}>
-        <Grid container spacing={3}>
+        <Grid container spacing={3} >
           <Grid item xs={6} />
           <Grid item xs={6} style={{ textAlign: "right" }} />
           <Grid item xs={12} />
