@@ -9,7 +9,7 @@
     "@material-ui/pickers": "^3.0.0",
     "date-fns": "^2.0.0-alpha.27",
     "history": "^4.9.0",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.21",
     "react": "^16.8.6",
     "react-copy-to-clipboard": "^5.0.1",
     "react-dom": "^16.8.6",
